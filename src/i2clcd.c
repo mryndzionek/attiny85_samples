@@ -187,7 +187,6 @@ bool lcd_gotolr(unsigned char line, unsigned char row )
         
         if(line > LCD_LINES) return false;
         if(row > LCD_ROWS) return false;
-        if((line == 0) || (row == 0) ) return false;
 
         unsigned char line_addr=(line%2)*0x40;
         lcd_command(0x80|(line_addr+row));

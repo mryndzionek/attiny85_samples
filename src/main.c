@@ -7,16 +7,23 @@
 
 int main(void) {
 
-    lcd_init();                                             //-     Display initialization
-    char string[] = "Hi World";
+    lcd_init();
     lcd_gotolr(1,4);
-    lcd_print((unsigned char *)string);                                      //-     Print a string
+    lcd_print("Hi World");
 
-    //-     Turn cursor off and activate blinking
     lcd_command(LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKINGON);
+    lcd_backlight(0);
+
+    int b = ON;
 
     for(;;)
         {
             _delay_ms(1000);
+            lcd_backlight(b);
+
+            lcd_gotolr(0,1);
+            lcd_putchar(0x30+b);
+
+            b^= ON;
         }
 }
