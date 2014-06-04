@@ -1,0 +1,9 @@
+*~
+*.swp
+*.swo
+.cproject
+.project
+.settings
+build/
+.*
+!/.gitignore
