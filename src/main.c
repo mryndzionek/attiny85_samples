@@ -3,13 +3,11 @@
 
 #include "i2clcd.h"
 
-#define set_output(portdir,pin) portdir |= _BV(pin)
-
 int main(void) {
 
     lcd_init();
     lcd_gotolr(1,4);
-    lcd_print("Hi World");
+    lcd_print((unsigned char *)"Hi World");
 
     lcd_command(LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKINGON);
     lcd_backlight(0);

@@ -183,8 +183,7 @@ bool lcd_printlr(unsigned char line, unsigned char row, unsigned char *string)
 //-     Go to position (line, row)
 bool lcd_gotolr(unsigned char line, unsigned char row )
 {
-        unsigned char lcddata;
-        
+
         if(line > LCD_LINES) return false;
         if(row > LCD_ROWS) return false;
 
