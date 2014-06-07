@@ -5,3 +5,10 @@ add_avr_executable(
 	i2cmaster.S
 	i2clcd.c
 )
+
+add_avr_executable(
+	mq_6
+	mq_6.c
+	i2cmaster.S
+	i2clcd.c
+)
