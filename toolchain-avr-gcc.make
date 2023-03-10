@@ -26,6 +26,12 @@ set(
 )
 
 set(
+    AVR_PORT /dev/ttyACM0
+    CACHE STRING
+    "AVR programmer port"
+)
+
+set(
     AVRDUDE_OPTIONS
     CACHE STRING
     "additional avrdude options"
@@ -106,7 +112,7 @@ function(add_avr_executable EXECUTABLE_NAME)
     set(upload_file ${EXECUTABLE_NAME}-${upload_mcu}.hex)
     add_custom_target(
         upload_${EXECUTABLE_NAME}
-        ${AVRDUDE} -p ${upload_mcu} -c ${AVR_PROGRAMMER} ${AVRDUDE_OPTIONS}
+        ${AVRDUDE} -p ${upload_mcu} -P ${AVR_PORT} -c ${AVR_PROGRAMMER} ${AVRDUDE_OPTIONS}
             -U flash:w:${upload_file}
             -U eeprom:w:${eeprom_image}
         DEPENDS ${upload_file} ${eeprom_image}

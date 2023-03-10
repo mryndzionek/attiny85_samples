@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.16)
 project(attiny85 C ASM)
 set_source_files_properties(foo.s PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp")
 

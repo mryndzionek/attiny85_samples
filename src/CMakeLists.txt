@@ -12,3 +12,8 @@ add_avr_executable(
 	i2cmaster.S
 	i2clcd.c
 )
+
+add_avr_executable(
+    lp_blink
+    lp_blink.c
+)
