@@ -17,3 +17,40 @@ add_avr_executable(
     lp_blink
     lp_blink.c
 )
+
+add_avr_executable(
+    whisper
+    annoyatron.c
+    snd/snd_whisper.c
+)
+
+add_avr_executable(
+    cricket
+    annoyatron.c
+    snd/snd_cricket.c
+)
+
+add_avr_executable(
+    droplet
+    annoyatron.c
+    snd/snd_droplet.c
+)
+
+add_avr_executable(
+    water
+    annoyatron.c
+    snd/snd_water.c
+)
+
+add_avr_executable(
+    scifi
+    annoyatron.c
+    snd/snd_scifi.c
+)
+
+add_avr_executable(
+    insect
+    annoyatron.c
+    snd/snd_insect.c
+)
+

@@ -7,3 +7,5 @@
 build/
 .*
 !/.gitignore
+scripts/data
+*.pdf
