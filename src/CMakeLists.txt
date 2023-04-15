@@ -54,3 +54,8 @@ add_avr_executable(
     snd/snd_insect.c
 )
 
+add_avr_executable(
+    charlie
+    charlie.c
+)
+
