@@ -59,3 +59,8 @@ add_avr_executable(
     charlie.c
 )
 
+add_avr_executable(
+    geiger
+    geiger.c
+)
+
