@@ -133,8 +133,10 @@ static void setup_main_timer(void)
   TCCR0A = 0x00; // Normal mode
   TCCR0B = 0x00;
   TCCR0B |= _BV(CS00); // no prescaling
+  TCCR0A |= _BV(WGM01);
+  OCR0A = 250 - 1;  // 8MHz / 250 = 32kHz
   TCNT0 = 0;
-  TIMSK |= _BV(TOIE0);
+  TIMSK |= _BV(OCIE0A);
 }
 
 static bool v_too_low(void)
@@ -169,7 +171,7 @@ ISR(WDT_vect)
   }
 }
 
-ISR(TIMER0_OVF_vect)
+ISR(TIMER0_COMPA_vect)
 {
   if (t1 > 0)
   {

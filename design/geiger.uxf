@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>4</zoom_level>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>132</x>
+      <y>248</y>
+      <w>116</w>
+      <h>92</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**MAIN_TIMER**
+--
+TYPE:
+    TIME_BASE
+
+RESOLUTION:
+    32us
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>940</x>
+      <y>436</y>
+      <w>116</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**LP_TIMER**
+--
+TYPE:
+    TIME_BASE
+    
+RESOLUTION:
+    32ms
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>360</x>
+      <y>604</y>
+      <w>452</w>
+      <h>132</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**PERIODIC_DOSE_CALC**
+--
+TYPE:
+   ACTIVE_OBJECT::STATE_MACHINE
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>408</x>
+      <y>176</y>
+      <w>8</w>
+      <h>8</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>404</x>
+      <y>200</y>
+      <w>128</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>IDLE
+--
+ENTRY:
+    TIMER_ADD(BOOST_POLL_TIMEOUT);
+    REQUEST_POWER_LEVEL(PWR_DOWN);
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>412</x>
+      <y>176</y>
+      <w>36</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0;70.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>808</x>
+      <y>260</y>
+      <w>148</w>
+      <h>212</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+NAME:
+    BOOST_POLL_TIMEOUT
+DIV: 1
+</panel_attributes>
+    <additional_attributes>330.0;510.0;170.0;510.0;170.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>528</x>
+      <y>204</y>
+      <w>76</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+BOOST_POLL_TIMEOUT</panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>596</x>
+      <y>204</y>
+      <w>16</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>type=decision</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>492</x>
+      <y>216</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+else</panel_attributes>
+    <additional_attributes>280.0;10.0;280.0;80.0;10.0;80.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>608</x>
+      <y>204</y>
+      <w>84</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+v_too_low();</panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0;170.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>544</x>
+      <y>260</y>
+      <w>252</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>BOOSTING
+--
+ENTRY:
+    PWM_ON();
+    REQUEST_POWER_LEVEL(IDLE);
+    
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>692</x>
+      <y>292</y>
+      <w>16</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>type=decision</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>704</x>
+      <y>292</y>
+      <w>100</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+BOOST_INTERVAL_TIMEOUT</panel_attributes>
+    <additional_attributes>230.0;20.0;70.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>552</x>
+      <y>292</y>
+      <w>148</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-[]
+v_too_low();/
+TIMER_ADD(BOOST_INTERVAL_TIMEOUT)
+bg=yellow</panel_attributes>
+    <additional_attributes>350.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>372</x>
+      <y>312</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>SHUTTING_DOWN
+--
+ENTRY:
+    PWM_OFF();
+    TIMER_ADD(SHUTDOWN_TIMEOUT)
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>508</x>
+      <y>304</y>
+      <w>200</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+else</panel_attributes>
+    <additional_attributes>480.0;10.0;480.0;70.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>432</x>
+      <y>232</y>
+      <w>72</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+SHUTDOWN_TIMEOUT</panel_attributes>
+    <additional_attributes>10.0;200.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>244</x>
+      <y>252</y>
+      <w>124</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+NAME:
+    BOOST_INTERVAL_TIMEOUT
+TIMEOUT:
+    4ms</panel_attributes>
+    <additional_attributes>10.0;20.0;290.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>244</x>
+      <y>284</y>
+      <w>124</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+NAME:
+    SHUTDOWN_TIMEOUT
+TIMEOUT:
+    100us</panel_attributes>
+    <additional_attributes>10.0;20.0;290.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>360</x>
+      <y>124</y>
+      <w>452</w>
+      <h>252</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**HV_BOOST**
+--
+TYPE:
+   ACTIVE_OBJECT::STATE_MACHINE
+   
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>424</x>
+      <y>472</y>
+      <w>132</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>IDLE
+--
+ENTRY:
+    REQUEST_POWER_LEVEL(PWR_DOWN);
+
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>436</x>
+      <y>448</y>
+      <w>8</w>
+      <h>8</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>448</y>
+      <w>36</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0;70.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>132</x>
+      <y>484</y>
+      <w>116</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**GEIGER_PULSE**
+--
+TYPE:
+    ASYNC_EVENT
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>244</x>
+      <y>516</y>
+      <w>124</w>
+      <h>12</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;290.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>604</x>
+      <y>472</y>
+      <w>140</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>ACTIVE
+--
+ENTRY:
+    PULSE_LEDS_ON();
+    TIMER_ADD(PULSE_STRETCHER_TIMEOUT)
+    REQUEST_POWER_LEVEL(IDLE);
+
+EXIT:
+    PULSE_LEDS_OFF();
+
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>552</x>
+      <y>484</y>
+      <w>60</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+GEIGER_PULSE</panel_attributes>
+    <additional_attributes>10.0;20.0;130.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>244</x>
+      <y>312</y>
+      <w>124</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+NAME:
+    PULSE_STRETCHER_TIMEOUT
+TIMEOUT:
+    100us</panel_attributes>
+    <additional_attributes>10.0;10.0;40.0;10.0;40.0;340.0;290.0;340.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>464</x>
+      <y>504</y>
+      <w>216</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>520.0;70.0;520.0;130.0;10.0;130.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>360</x>
+      <y>400</y>
+      <w>452</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+**PULSE_STRETCHER**
+--
+TYPE:
+   ACTIVE_OBJECT::STATE_MACHINE
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>416</x>
+      <y>664</y>
+      <w>176</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>ALWAYS
+--
+
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>440</x>
+      <y>640</y>
+      <w>8</w>
+      <h>8</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>444</x>
+      <y>640</y>
+      <w>36</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0;70.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>684</y>
+      <w>100</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-[]
+DOSE_CALC_TIMEOUT/
+calc_dose();
+bg=yellow</panel_attributes>
+    <additional_attributes>230.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>808</x>
+      <y>484</y>
+      <w>144</w>
+      <h>184</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+NAME:
+    DOSE_CALC_TIMEOUT    
+EVERY: 5s</panel_attributes>
+    <additional_attributes>330.0;10.0;170.0;10.0;170.0;440.0;10.0;440.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>132</x>
+      <y>212</y>
+      <w>112</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>Scheduled from ATTINY85's
+TIMER0 interrupt
+
+bg=blue
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>132</x>
+      <y>444</y>
+      <w>112</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>Pin change interrupt PCINT3 (PB3)
+
+bg=blue
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>940</x>
+      <y>400</y>
+      <w>112</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>Scheduled from ATTINY85's
+watchdog interrupt
+
+bg=blue
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
