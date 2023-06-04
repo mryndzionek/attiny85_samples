@@ -59,8 +59,11 @@ Configuring
 -----------
 
 ```
-cmake -DAVR_PROGRAMMER=avrisp -DAVR_PORT="/dev/ttyACM0" \
-      -DCMAKE_TOOLCHAIN_FILE=../toolchain-avr-gcc.make ..
+cmake -DCMAKE_BUILD_TYPE=Release -DAVR_MCU=attiny85 \
+      -DAVR_PROGRAMMER=avrisp -DAVR_PROGRAMMER_PORT=/dev/ttyACM0 \
+      -DMCU_FREQ=8000000 -DCMAKE_TOOLCHAIN_FILE=../toolchain-avr-gcc.make ..
+
+make -j
 ```
 
 

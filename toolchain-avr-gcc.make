@@ -1,140 +1,123 @@
-find_program(AVR_CC avr-gcc)
-find_program(AVR_CXX avr-g++)
-find_program(AVR_OBJCOPY avr-objcopy)
-find_program(AVR_SIZE_TOOL avr-size)
+#toolchain cmake file for avr-gcc/avrdude toolchain
 
-set(CMAKE_SYSTEM_NAME generic)
-set(CMAKE_C_COMPILER   ${AVR_CC})
-set(CMAKE_CXX_COMPILER ${AVR_CXX})
-set(CMAKE_C_FLAGS_MINSIZEDBG "-Os")
+# needs the following variables:
+# AVR_MCU : mcu type (eg atmega328p)
+# MCU_FREQ : clock frequency (defines F_CPU)
+# AVR_PROGRAMMER : programmer type for avrdude
+# AVR_PROGRAMMER_PORT : programmer port for avrdude (OS specific)
+# PROGRAM_EEPROM : enable eeprom programming (doesn't work on arduino)
 
-# XXX better use a seperate file for non toolchain stuff?
+#generic avr flags
+set(AVR_CFLAGS "-ffunction-sections -fdata-sections" CACHE STRING "AVR compilation flags")
+set(AVR_LFLAGS "-Wl,--relax,--gc-sections" CACHE STRING "AVR link flags")
+
+#find toolchain programs
+find_program(AVR-GCC avr-gcc)
+find_program(AVR-GXX avr-g++)
+find_program(AVR-OBJCOPY avr-objcopy)
+find_program(AVR-SIZE avr-size)
 find_program(AVRDUDE avrdude)
 
-add_definitions( -Wall )
+#define toolchain
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_C_COMPILER ${AVR-GCC})
+set(CMAKE_CXX_COMPILER ${AVR-GXX})
 
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
+#Release by default, because optimization 
+#is needed for delay functions to work properly
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
 
-set(
-    AVR_PROGRAMMER usbasp
-    CACHE STRING
-    "programmer hardware model. See 'avrdude -c ?' for a full list."
-)
 
-set(
-    AVR_PORT /dev/ttyACM0
-    CACHE STRING
-    "AVR programmer port"
-)
+function(avr_add_executable_compilation EXECUTABLE)
+	
+	set(EXECUTABLE_ELF "${EXECUTABLE}.elf")
+	set(EXECUTABLE_HEX "${EXECUTABLE}.hex")
+	if(PROGRAM_EEPROM)
+		set(EXECUTABLE_EEPROM "${EXECUTABLE}_eeprom.hex")
+	endif(PROGRAM_EEPROM)
 
-set(
-    AVRDUDE_OPTIONS
-    CACHE STRING
-    "additional avrdude options"
-)
+	# main target for the executable depends of hex and eeprom files
+	if(PROGRAM_EEPROM)
+		add_custom_target(${EXECUTABLE} ALL 
+			DEPENDS ${EXECUTABLE_HEX} ${EXECUTABLE_EEPROM})
+	else(PROGRAM_EEPROM)
+		add_custom_target(${EXECUTABLE} ALL 
+			DEPENDS ${EXECUTABLE_HEX} ${EXECUTABLE_EEPROM})
+	endif(PROGRAM_EEPROM)
 
-set(
-    AVR_DEFAULT_MCUS attiny85
-    CACHE STRING
-    "List of default target MCUs. See 'avr-gcc --target-help' for valid values."
-)
+	# compile and link elf file
+	add_executable(${EXECUTABLE_ELF} ${ARGN})
+	set_target_properties(${EXECUTABLE_ELF} PROPERTIES 
+		COMPILE_FLAGS "-mmcu=${AVR_MCU} -DF_CPU=${MCU_FREQ} ${AVR_CFLAGS}"
+		LINK_FLAGS "-mmcu=${AVR_MCU} ${AVR_LFLAGS}")
 
-function(_avr_get_mcu_list NAME OUTVAR)
-    string(TOUPPER ${NAME} name_uc)
-    set(mcu_type_var ${name_uc}_MCUS)
-    set(
-        ${mcu_type_var} ${AVR_DEFAULT_MCUS}
-        CACHE STRING 
-        "List of target MCUs. See 'avr-gcc --target-help' for valid values."
-    )
-    set(${OUTVAR} ${${mcu_type_var}} PARENT_SCOPE)
-endfunction(_avr_get_mcu_list)
+	# rule for program hex file
+	add_custom_command(OUTPUT ${EXECUTABLE_HEX} 
+		COMMAND ${AVR-OBJCOPY} -j .text -j .data -O ihex ${EXECUTABLE_ELF} ${EXECUTABLE_HEX}
+		DEPENDS ${EXECUTABLE_ELF})
 
-function(add_avr_executable EXECUTABLE_NAME)
-    _avr_get_mcu_list(${EXECUTABLE_NAME} target_mcus)
-    foreach(mcu ${target_mcus})
-        set(elf_file ${EXECUTABLE_NAME}-${mcu}.elf)
-        set(hex_file ${EXECUTABLE_NAME}-${mcu}.hex)
-        set(map_file ${EXECUTABLE_NAME}-${mcu}.map)
-        add_executable(${elf_file} EXCLUDE_FROM_ALL ${ARGN})
-        set(common_opts "-mmcu=${mcu} -fshort-enums -fpack-struct")
-        set_target_properties( 
-            ${elf_file}
-            PROPERTIES
-                COMPILE_FLAGS "${common_opts}"
-                LINK_FLAGS "${common_opts} -Wl,-Map,${map_file}"
-        )
+	# rule for eeprom hex file
+	if(PROGRAM_EEPROM)
+		add_custom_command(OUTPUT ${EXECUTABLE_EEPROM}
+			COMMAND ${AVR-OBJCOPY} -j .eeprom --change-section-lma .eeprom=0 -O ihex ${EXECUTABLE_ELF} ${EXECUTABLE_EEPROM}
+			DEPENDS ${EXECUTABLE_ELF})
+	endif(PROGRAM_EEPROM)
 
-        add_custom_command(
-            OUTPUT ${hex_file}
-            COMMAND
-                ${AVR_OBJCOPY} -j .text -j .data -O ihex ${elf_file} ${hex_file}
-            COMMAND
-                ${AVR_SIZE_TOOL} ${elf_file}
-            DEPENDS ${elf_file}
-        )
-        list(APPEND all_hex_files ${hex_file})
-        list(APPEND all_map_files ${map_file})
-    endforeach(mcu ${target_mcus})
-    set(eeprom_image ${EXECUTABLE_NAME}-eeprom.hex)
-    add_custom_command(
-        OUTPUT ${eeprom_image}
-        COMMAND
-            ${AVR_OBJCOPY} -j .eeprom --change-section-lma .eeprom=0 
-                -O ihex ${elf_file} ${eeprom_image}
-        DEPENDS ${elf_file}
-    )
-    list(APPEND all_hex_files ${eeprom_image})
-    add_custom_target(
-        ${EXECUTABLE_NAME}
-        ALL
-        DEPENDS ${all_hex_files}
-    )
-    get_directory_property(clean_files ADDITIONAL_MAKE_CLEAN_FILES)
-    list(APPEND clean_files ${all_map_files})
-    set_directory_properties(
-        PROPERTIES
-            ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}"
-    )
+	# display size info after compilation
+	add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
+		COMMAND ${AVR-SIZE} -C --mcu=${AVR_MCU} ${EXECUTABLE_ELF})
+endfunction(avr_add_executable_compilation)
 
-    string(TOUPPER ${EXECUTABLE_NAME} name_uc)
-    list(GET target_mcus 0 default_upload_mcu)
-    set(
-        ${name_uc}_UPLOAD_MCU ${default_upload_mcu}
-        CACHE STRING
-        "The MCU this executable will be uploaded to."
-    )
-    set(upload_mcu ${${name_uc}_UPLOAD_MCU})
-    set(upload_file ${EXECUTABLE_NAME}-${upload_mcu}.hex)
-    add_custom_target(
-        upload_${EXECUTABLE_NAME}
-        ${AVRDUDE} -p ${upload_mcu} -P ${AVR_PORT} -c ${AVR_PROGRAMMER} ${AVRDUDE_OPTIONS}
-            -U flash:w:${upload_file}
-            -U eeprom:w:${eeprom_image}
-        DEPENDS ${upload_file} ${eeprom_image}
-        COMMENT "Uploading ${upload_file} to ${upload_mcu} using programmer ${AVR_PROGRAMMER}"
-    )
-    add_custom_target(
-        disassemble_${EXECUTABLE_NAME}
-        avr-objdump -h -S ${EXECUTABLE_NAME}-${upload_mcu}.elf > ${EXECUTABLE_NAME}.lst
-        DEPENDS ${EXECUTABLE_NAME}-${upload_mcu}.elf
-    )
-endfunction(add_avr_executable)
+function(avr_add_executable_upload ${EXECUTABLE})
+	set(AVR_PROGRAMMER_OPTIONS "")
+	
+	if(AVR_PROGRAMMER_BAUDRATE)
+		set(AVR_PROGRAMMER_OPTIONS ${AVR_PROGRAMMER_OPTIONS} -b ${AVR_PROGRAMMER_BAUDRATE})
+	endif(AVR_PROGRAMMER_BAUDRATE)
+	
+	if(AVR_PROGRAMMER_PORT)
+		set(AVR_PROGRAMMER_OPTIONS ${AVR_PROGRAMMER_OPTIONS} -P ${AVR_PROGRAMMER_PORT})
+	endif(AVR_PROGRAMMER_PORT)
+	
+	# upload target
+	if(PROGRAM_EEPROM)
+		add_custom_target(upload_${EXECUTABLE} 
+			COMMAND ${AVRDUDE} -p ${AVR_MCU} -c ${AVR_PROGRAMMER} ${AVR_PROGRAMMER_OPTIONS} -U flash:w:${EXECUTABLE}.hex -U eeprom:w:${EXECUTABLE}_eeprom.hex
+			DEPENDS ${EXECUTABLE})
+	else(PROGRAM_EEPROM)
+		add_custom_target(upload_${EXECUTABLE} 
+			COMMAND ${AVRDUDE} -p ${AVR_MCU} -c ${AVR_PROGRAMMER} ${AVR_PROGRAMMER_OPTIONS} -U flash:w:${EXECUTABLE}.hex
+			DEPENDS ${EXECUTABLE})
+	endif(PROGRAM_EEPROM)
+endfunction(avr_add_executable_upload)
 
-function(add_avr_library LIBRARY_NAME)
-    _avr_get_mcu_list(${LIBRARY_NAME} target_mcus)
-    foreach(mcu ${target_mcus})
-        set(lib_file ${LIBRARY_NAME}-${mcu})
-        add_library(${lib_file} STATIC ${ARGN})
-        set_target_properties( 
-            ${lib_file}
-            PROPERTIES
-                COMPILE_FLAGS -mmcu=${mcu}
-        )
-    endforeach(mcu ${target_mcus})
-endfunction(add_avr_library)
+function(avr_add_executable EXECUTABLE)
+	if(NOT AVR_MCU)
+		message(FATAL_ERROR "AVR_MCU not defined")
+	endif(NOT AVR_MCU)
+	avr_add_executable_compilation(${EXECUTABLE} ${ARGN})
+	if(AVR_PROGRAMMER)
+		avr_add_executable_upload(${EXECUTABLE})
+	else(AVR_PROGRAMMER)
+		message(WARNING "Programmer not defined, upload target is not created")
+	endif(AVR_PROGRAMMER)
+endfunction(avr_add_executable)
 
+function(avr_add_library LIBRARY)
+	if(NOT AVR_MCU)
+		message(FATAL_ERROR "AVR_MCU not defined")
+	endif(NOT AVR_MCU)
+	if(ARGV1 EQUAL SHARED)
+		message(FATAL_ERROR "shared libraries are not supported")
+	endif(ARGV1 EQUAL SHARED)
+	add_library(${LIBRARY} ${ARGN})
+	set_target_properties(${LIBRARY} PROPERTIES 
+		COMPILE_FLAGS "-mmcu=${AVR_MCU} -DF_CPU=${MCU_FREQ} ${AVR_CFLAGS}"
+		LINK_FLAGS "-mmcu=${AVR_MCU} ${AVR_LFLAGS}")
+endfunction(avr_add_library LIBRARY)
+
+function(avr_target_link_libraries TARGET)
+	target_link_libraries(${TARGET}.elf ${ARGN})
+endfunction(avr_target_link_libraries TARGET)

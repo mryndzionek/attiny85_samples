@@ -8,8 +8,7 @@ set(VERSION_PATCH 0)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-attributes -fno-strict-aliasing")
-
-add_definitions( -DF_CPU=8000000UL )
+set(CMAKE_C_FLAGS_RELEASE "-Os")
 
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in"
