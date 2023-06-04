@@ -84,3 +84,12 @@ avr_add_executable(
 
 avr_target_link_libraries(u8g2_i2c_test u8g2)
 
+avr_add_executable(
+    ds3231_oled_clock
+    i2c_master_usi.c
+    u8x8_avr.c
+    ds3231_oled_clock.c
+)
+
+avr_target_link_libraries(ds3231_oled_clock u8g2)
+
