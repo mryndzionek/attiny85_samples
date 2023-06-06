@@ -54,6 +54,16 @@ the lowest power level possible:
 
 ![geiger](design/geiger.png)
 
+### U8g2 SSD1306 i2c OLED display test
+
+### U8g2 SSD1306 i2c OLED + DS3231 clock app
+
+![oled_1](images/oled_1.png)
+
+![oled_2](images/oled_2.png)
+
+![oled_3](images/oled_3.png)
+
 
 Configuring
 -----------
