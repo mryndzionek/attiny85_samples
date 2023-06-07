@@ -20,36 +20,42 @@ avr_add_executable(
 
 avr_add_executable(
     whisper
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_whisper.c
 )
 
 avr_add_executable(
     cricket
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_cricket.c
 )
 
 avr_add_executable(
     droplet
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_droplet.c
 )
 
 avr_add_executable(
     water
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_water.c
 )
 
 avr_add_executable(
     scifi
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_scifi.c
 )
 
 avr_add_executable(
     insect
+    i2c_master_usi.c
     annoyatron.c
     snd/snd_insect.c
 )

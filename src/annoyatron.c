@@ -10,6 +10,18 @@
 
 #include "snd/snd.h"
 
+#define USE_BH1750
+
+#ifdef USE_BH1750
+#include "i2c_master_usi.h"
+
+#define BH1750_ADDR (0x23)
+#define ONE_TIME_HIGH_RES_MODE (0x20)
+#define ONE_TIME_HIGH_RES_MODE_2 (0x21)
+#define ONE_TIME_LOW_RES_MODE (0x23)
+#endif
+
+#ifndef USE_BH1750
 static void adc_init(void)
 {
     ADCSRA |= _BV(ADEN);
@@ -17,6 +29,7 @@ static void adc_init(void)
     ADCSRB = 0x00;  // Configuring free running mode
     ADCSRA |= (1 << ADSC) | (1 << ADATE);
 }
+#endif
 
 static void setup(void)
 {
@@ -27,8 +40,8 @@ static void setup(void)
     TIMSK = 0;                                    // Timer interrupts OFF
     TCCR1 = 1 << PWM1A | 2 << COM1A0 | 1 << CS10; // PWM A, clear on match, 1:1 prescale
     GTCCR = 1 << PWM1B | 2 << COM1B0;             // PWM B, clear on match
-    OCR1A = 128;
-    OCR1B = 128; // 50% duty at start
+    OCR1A = 0;
+    OCR1B = 0;
 
     DDRB |= 1 << PB3;
     PORTB &= ~_BV(PB3);
@@ -38,10 +51,14 @@ static void setup(void)
     TIMSK = 1 << OCIE0A;             // Enable compare match
     OCR0A = SND_DIV - 1;
 
-    DDRB |= _BV(PB4);
-    DDRB |= _BV(PB1);
+    DDRB |= _BV(PB4) | _BV(PB1);
+    TIMSK &= ~_BV(OCIE0A);
 
+#ifdef USE_BH1750
+    i2c_init();
+#else
     adc_init();
+#endif
 }
 
 static volatile bool g_finished = false;
@@ -59,6 +76,32 @@ ISR(WDT_vect)
 {
 }
 
+#ifdef USE_BH1750
+static bool is_dark(void)
+{
+    uint16_t level;
+
+    i2c_start(BH1750_ADDR, 0);
+    i2c_write(ONE_TIME_HIGH_RES_MODE_2);
+    i2c_stop();
+
+    _delay_ms(180);
+
+    i2c_start(BH1750_ADDR, 2);
+    level = i2c_read() << 8;
+    level |= i2c_read();
+    i2c_stop();
+
+    if (level < 3)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+#else
 static bool is_dark(void)
 {
     uint32_t adc_val = 0;
@@ -84,6 +127,7 @@ static bool is_dark(void)
         return false;
     }
 }
+#endif
 
 void annoy_deep_sleep(uint8_t i)
 {
@@ -99,7 +143,9 @@ void annoy_deep_sleep(uint8_t i)
         WDTCR |= (_BV(WDCE) | _BV(WDE));
         WDTCR = _BV(WDP3) | _BV(WDP0);
         WDTCR |= _BV(WDIE);
+#ifndef USE_BH1750
         ADCSRA &= ~_BV(ADEN);
+#endif
         sleep_mode();
     }
 
@@ -107,7 +153,9 @@ void annoy_deep_sleep(uint8_t i)
     {
         power_all_enable();
         set_sleep_mode(SLEEP_MODE_IDLE);
+#ifndef USE_BH1750
         ADCSRA |= _BV(ADEN);
+#endif
     }
 }
 
@@ -116,7 +164,7 @@ int main(void)
     bool finished;
     ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
-        MCUSR &= ~(1 << WDRF);
+        MCUSR &= ~_BV(WDRF);
         setup();
     }
 
@@ -134,6 +182,8 @@ int main(void)
                     finished = g_finished;
                 }
             } while (!finished);
+            OCR1A = 0;
+            OCR1B = 0;
             TIMSK &= ~_BV(OCIE0A);
             snd_wait();
         }
