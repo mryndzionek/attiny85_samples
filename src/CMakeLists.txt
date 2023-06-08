@@ -33,6 +33,13 @@ avr_add_executable(
 )
 
 avr_add_executable(
+    critters
+    i2c_master_usi.c
+    annoyatron.c
+    snd/snd_critters.c
+)
+
+avr_add_executable(
     droplet
     i2c_master_usi.c
     annoyatron.c

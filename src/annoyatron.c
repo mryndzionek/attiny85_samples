@@ -182,14 +182,12 @@ int main(void)
                     finished = g_finished;
                 }
             } while (!finished);
-            OCR1A = 0;
-            OCR1B = 0;
             TIMSK &= ~_BV(OCIE0A);
             snd_wait();
         }
         else
         {
-            annoy_deep_sleep(1);
+            annoy_deep_sleep(20);
         }
     }
 }
