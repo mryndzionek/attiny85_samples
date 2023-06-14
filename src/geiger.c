@@ -134,7 +134,7 @@ static void setup_main_timer(void)
   TCCR0B = 0x00;
   TCCR0B |= _BV(CS00); // no prescaling
   TCCR0A |= _BV(WGM01);
-  OCR0A = 250 - 1;  // 8MHz / 250 = 32kHz
+  OCR0A = 250 - 1; // 8MHz / 250 = 32kHz
   TCNT0 = 0;
   TIMSK |= _BV(OCIE0A);
 }
@@ -389,8 +389,17 @@ int main(void)
       }
 
       // dose_rate in 0.01 µSv/hr
+
+      // // this calculation is for SBM-20 tube,
+      // // with conversion factor of k = 0.0052
+      // dose = cpm >> 1;
+      // dose += dose / 25;
+
+      // this calculation is for J305 tube,
+      // with conversion factor of k = 0.00812
       dose = cpm >> 1;
-      dose += dose / 25;
+      dose += (dose >> 1) + (dose >> 3);
+
       CLEAR_EVENT(EV_DOSE_CALC_TIMEOUT);
     }
   }
