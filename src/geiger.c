@@ -8,17 +8,29 @@
 #include <util/delay.h>
 #include <util/atomic.h>
 
+// Uncommenting this will enable
+// the Attiny85's RESET (PB5) line control.
+// Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
+// #define ENABLE_RESET_PIN
+
 #define PWM_DUTY (180)
 
 #define LED_GREEN_PIN (PB2)
 #define LED_RED_PIN (PB0)
+#ifdef ENABLE_RESET_PIN
+#define BUZZER_PIN (PB5)
+#endif
 
 #define ORANGE_THRESHOLD (50) // 0.5 uS/h
 #define RED_THRESHOLD (1000)  // 10 uS/h
 
 #define BOOST_INTERVAL_TIMEOUT_US (4000)
 #define SHUTDOWN_TIMEOUT_US (100)
-#define PULSE_STRETCHER_TIMEOUT_US (100)
+#define PULSE_STRETCHER_TIMEOUT_US (1000)
+#ifdef ENABLE_RESET_PIN
+#define BUZZER_PULSE_TIMEOUT_US (183)
+#endif
+
 #define DOSE_CALC_TIMEOUT_MS (5000)
 #define CPM_BUF_SIZE (60000UL / DOSE_CALC_TIMEOUT_MS)
 
@@ -28,9 +40,15 @@
 #define EV_PULSE_STRETCH_TIMEOUT _BV(3)
 #define EV_GEIGER_PULSE _BV(4)
 #define EV_DOSE_CALC_TIMEOUT _BV(5)
+#ifdef ENABLE_RESET_PIN
+#define EV_BUZZER_PULSE_TIMEOUT _BV(6)
+#endif
 
 #define S1_ID _BV(0)
 #define S2_ID _BV(1)
+#ifdef ENABLE_RESET_PIN
+#define S3_ID _BV(2)
+#endif
 
 // _tm can be t1, t2, or t4
 // resolution is 32us
@@ -80,6 +98,9 @@ static volatile uint_fast16_t t1;
 static volatile uint_fast16_t t2;
 static volatile uint_fast16_t t4;
 static volatile uint_fast16_t t5;
+#ifdef ENABLE_RESET_PIN
+static volatile uint_fast16_t t6;
+#endif
 static volatile uint_fast16_t pulse_count;
 
 static void setup_pwm(void)
@@ -199,6 +220,17 @@ ISR(TIMER0_COMPA_vect)
       events |= EV_PULSE_STRETCH_TIMEOUT;
     }
   }
+
+#ifdef ENABLE_RESET_PIN
+  if (t6 > 0)
+  {
+    t6--;
+    if (t6 == 0)
+    {
+      events |= EV_BUZZER_PULSE_TIMEOUT;
+    }
+  }
+#endif
 }
 
 ISR(PCINT0_vect)
@@ -216,6 +248,10 @@ int main(void)
 {
   s1_e s1 = s1_power_down;
   s2_e s2 = s2_idle;
+#ifdef ENABLE_RESET_PIN
+  s2_e s3 = s2_idle;
+#endif
+
   uint_fast8_t power_flags = 0;
   uint_fast8_t _events_ = 0;
   uint_fast16_t cpm_buf[CPM_BUF_SIZE] = {0};
@@ -227,7 +263,13 @@ int main(void)
   ADCSRA &= ~_BV(ADEN);
 
   DDRB |= _BV(PB4) | _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
+#ifdef ENABLE_RESET_PIN
+  DDRB |= _BV(BUZZER_PIN);
+#endif
   PORTB &= ~(_BV(LED_RED_PIN) | _BV(LED_GREEN_PIN));
+#ifdef ENABLE_RESET_PIN
+  PORTB &= ~_BV(BUZZER_PIN);
+#endif
 
   setup_pwm();
   setup_main_timer();
@@ -349,7 +391,9 @@ int main(void)
         s2 = s2_pulse;
         power_flags |= S2_ID;
         TIMER_TRIGGER_US(t4, PULSE_STRETCHER_TIMEOUT_US);
+#ifndef ENABLE_RESET_PIN
         CLEAR_EVENT(EV_GEIGER_PULSE);
+#endif
       }
       break;
 
@@ -363,6 +407,32 @@ int main(void)
       }
       break;
     }
+
+#ifdef ENABLE_RESET_PIN
+    switch (s3)
+    {
+    case s2_idle:
+      if IS_EVENT (EV_GEIGER_PULSE)
+      {
+        PORTB |= _BV(BUZZER_PIN);
+        s3 = s2_pulse;
+        power_flags |= S3_ID;
+        TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
+        CLEAR_EVENT(EV_GEIGER_PULSE);
+      }
+      break;
+
+    case s2_pulse:
+      if IS_EVENT (EV_BUZZER_PULSE_TIMEOUT)
+      {
+        PORTB &= ~_BV(BUZZER_PIN);
+        s2 = s2_idle;
+        power_flags &= ~S3_ID;
+        CLEAR_EVENT(EV_BUZZER_PULSE_TIMEOUT);
+      }
+      break;
+    }
+#endif
 
     if IS_EVENT (EV_DOSE_CALC_TIMEOUT)
     {
