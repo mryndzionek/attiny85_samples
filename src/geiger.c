@@ -21,12 +21,12 @@
 #define BUZZER_PIN (PB5)
 #endif
 
-#define ORANGE_THRESHOLD (50) // 0.5 uS/h
-#define RED_THRESHOLD (1000)  // 10 uS/h
+#define ORANGE_THRESHOLD (50) // 0.5 µS/h
+#define RED_THRESHOLD (1000)  // 10 µS/h
 
 #define BOOST_INTERVAL_TIMEOUT_US (4000)
 #define SHUTDOWN_TIMEOUT_US (100)
-#define PULSE_STRETCHER_TIMEOUT_US (1000)
+#define LED_PULSE_TIMEOUT_US (1000)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PULSE_TIMEOUT_US (183)
 #endif
@@ -390,7 +390,7 @@ int main(void)
         }
         s2 = s2_pulse;
         power_flags |= S2_ID;
-        TIMER_TRIGGER_US(t4, PULSE_STRETCHER_TIMEOUT_US);
+        TIMER_TRIGGER_US(t4, LED_PULSE_TIMEOUT_US);
 #ifndef ENABLE_RESET_PIN
         CLEAR_EVENT(EV_GEIGER_PULSE);
 #endif
