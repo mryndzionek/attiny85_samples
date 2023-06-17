@@ -26,7 +26,7 @@
 
 #define BOOST_INTERVAL_TIMEOUT_US (4000)
 #define SHUTDOWN_TIMEOUT_US (100)
-#define LED_PULSE_TIMEOUT_US (5000)
+#define LED_PULSE_TIMEOUT_MS (62)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PULSE_TIMEOUT_US (183)
 #endif
@@ -37,7 +37,7 @@
 #define EV_BOOST_TIMEOUT _BV(0)
 #define EV_SHUTDOWN_TIMEOUT _BV(1)
 #define EV_POWER_DOWN_TIMEOUT _BV(2)
-#define EV_PULSE_STRETCH_TIMEOUT _BV(3)
+#define EV_LED_PULSE_TIMEOUT _BV(3)
 #define EV_GEIGER_PULSE _BV(4)
 #define EV_GEIGER_PULSE_2 _BV(5)
 #define EV_DOSE_CALC_TIMEOUT _BV(6)
@@ -51,7 +51,7 @@
 #define S3_ID _BV(2)
 #endif
 
-// _tm can be t1, t2, or t4
+// _tm can be t1, or t2
 // resolution is 64us
 #define TIMER_TRIGGER_US(_tm, _us) \
   do                               \
@@ -62,7 +62,7 @@
     }                              \
   } while (0)
 
-// _tm can be t5
+// _tm can be t4, or t5
 // resolution is 32ms
 #define TIMER_LP_TRIGGER_MS(_tm, _ms) \
   do                                  \
@@ -139,7 +139,6 @@ static void setup_comparator(void)
   ADCSRB = 0x00;
   DIDR0 |= _BV(AIN1D) | _BV(AIN0D);
   ACSR |= _BV(ACBG);
-  // ACSR |= _BV(ACIE);
 }
 
 static void setup_wdt(void)
@@ -181,6 +180,15 @@ ISR(WDT_vect)
 {
   events |= EV_POWER_DOWN_TIMEOUT;
 
+  if (t4 > 0)
+  {
+    t4--;
+    if (t4 == 0)
+    {
+      events |= EV_LED_PULSE_TIMEOUT;
+    }
+  }
+
   if (t5 > 0)
   {
     t5--;
@@ -209,15 +217,6 @@ ISR(TIMER0_COMPA_vect)
     if (t2 == 0)
     {
       events |= EV_SHUTDOWN_TIMEOUT;
-    }
-  }
-
-  if (t4 > 0)
-  {
-    t4--;
-    if (t4 == 0)
-    {
-      events |= EV_PULSE_STRETCH_TIMEOUT;
     }
   }
 
@@ -392,19 +391,17 @@ int main(void)
           PORTB &= ~_BV(LED_RED_PIN);
         }
         s2 = s2_pulse;
-        power_flags |= S2_ID;
-        TIMER_TRIGGER_US(t4, LED_PULSE_TIMEOUT_US);
+        TIMER_LP_TRIGGER_MS(t4, LED_PULSE_TIMEOUT_MS);
         CLEAR_EVENT(EV_GEIGER_PULSE);
       }
       break;
 
     case s2_pulse:
-      if IS_EVENT (EV_PULSE_STRETCH_TIMEOUT)
+      if IS_EVENT (EV_LED_PULSE_TIMEOUT)
       {
         PORTB |= _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
         s2 = s2_idle;
-        power_flags &= ~S2_ID;
-        CLEAR_EVENT(EV_PULSE_STRETCH_TIMEOUT);
+        CLEAR_EVENT(EV_LED_PULSE_TIMEOUT);
       }
       break;
     }
@@ -415,10 +412,13 @@ int main(void)
     case s2_idle:
       if IS_EVENT (EV_GEIGER_PULSE_2)
       {
-        PORTB |= _BV(BUZZER_PIN);
-        s3 = s2_pulse;
-        power_flags |= S3_ID;
-        TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
+        if (dose >= ORANGE_THRESHOLD)
+        {
+          PORTB |= _BV(BUZZER_PIN);
+          s3 = s2_pulse;
+          power_flags |= S3_ID;
+          TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
+        }
         CLEAR_EVENT(EV_GEIGER_PULSE_2);
       }
       break;
@@ -454,7 +454,7 @@ int main(void)
       cpm += pc5s;
       cpm_buf[cpm_i] = pc5s;
       ++cpm_i;
-      if (cpm_i > (CPM_BUF_SIZE - 1))
+      if (cpm_i == CPM_BUF_SIZE)
       {
         cpm_i = 0;
       }
