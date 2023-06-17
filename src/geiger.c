@@ -26,7 +26,7 @@
 
 #define BOOST_INTERVAL_TIMEOUT_US (4000)
 #define SHUTDOWN_TIMEOUT_US (100)
-#define LED_PULSE_TIMEOUT_US (1000)
+#define LED_PULSE_TIMEOUT_US (5000)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PULSE_TIMEOUT_US (183)
 #endif
@@ -39,9 +39,10 @@
 #define EV_POWER_DOWN_TIMEOUT _BV(2)
 #define EV_PULSE_STRETCH_TIMEOUT _BV(3)
 #define EV_GEIGER_PULSE _BV(4)
-#define EV_DOSE_CALC_TIMEOUT _BV(5)
+#define EV_GEIGER_PULSE_2 _BV(5)
+#define EV_DOSE_CALC_TIMEOUT _BV(6)
 #ifdef ENABLE_RESET_PIN
-#define EV_BUZZER_PULSE_TIMEOUT _BV(6)
+#define EV_BUZZER_PULSE_TIMEOUT _BV(7)
 #endif
 
 #define S1_ID _BV(0)
@@ -51,13 +52,13 @@
 #endif
 
 // _tm can be t1, t2, or t4
-// resolution is 32us
+// resolution is 64us
 #define TIMER_TRIGGER_US(_tm, _us) \
   do                               \
   {                                \
     ATOMIC_BLOCK(ATOMIC_FORCEON)   \
     {                              \
-      _tm = 1 + (_us >> 5);        \
+      _tm = 1 + (_us >> 6);        \
     }                              \
   } while (0)
 
@@ -93,7 +94,7 @@ typedef enum
   s2_pulse,
 } s2_e;
 
-static volatile uint_fast8_t events;
+static volatile uint_fast16_t events;
 static volatile uint_fast16_t t1;
 static volatile uint_fast16_t t2;
 static volatile uint_fast16_t t4;
@@ -145,17 +146,16 @@ static void setup_wdt(void)
 {
   MCUSR &= ~_BV(WDRF);
   WDTCR |= (_BV(WDCE) | _BV(WDE));
-  WDTCR = _BV(WDP0); // Set Timeout to 32ms
-  WDTCR = _BV(WDIE);
+  WDTCR = _BV(WDIE) | _BV(WDP0); // Set Timeout to 32ms
 }
 
 static void setup_main_timer(void)
 {
   TCCR0A = 0x00; // Normal mode
   TCCR0B = 0x00;
-  TCCR0B |= _BV(CS00); // no prescaling
+  TCCR0B |= _BV(CS01); // prescaling clk / 8
   TCCR0A |= _BV(WGM01);
-  OCR0A = 250 - 1; // 8MHz / 250 = 32kHz
+  OCR0A = 64 - 1; // 1MHz / 64 = 15.625kHz = 64us
   TCNT0 = 0;
   TIMSK |= _BV(OCIE0A);
 }
@@ -187,7 +187,7 @@ ISR(WDT_vect)
     if (t5 == 0)
     {
       events |= EV_DOSE_CALC_TIMEOUT;
-      t5 = 1 + (DOSE_CALC_TIMEOUT_MS >> 5);
+      TIMER_LP_TRIGGER_MS(t5, DOSE_CALC_TIMEOUT_MS);
     }
   }
 }
@@ -241,6 +241,9 @@ ISR(PCINT0_vect)
   {
     pulse_count++;
     events |= EV_GEIGER_PULSE;
+#ifdef ENABLE_RESET_PIN
+    events |= EV_GEIGER_PULSE_2;
+#endif
   }
 }
 
@@ -266,7 +269,7 @@ int main(void)
 #ifdef ENABLE_RESET_PIN
   DDRB |= _BV(BUZZER_PIN);
 #endif
-  PORTB &= ~(_BV(LED_RED_PIN) | _BV(LED_GREEN_PIN));
+  PORTB |= _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
 #ifdef ENABLE_RESET_PIN
   PORTB &= ~_BV(BUZZER_PIN);
 #endif
@@ -378,29 +381,27 @@ int main(void)
       {
         if (dose < ORANGE_THRESHOLD)
         {
-          PORTB |= _BV(LED_GREEN_PIN);
+          PORTB &= ~_BV(LED_GREEN_PIN);
         }
         else if (dose < RED_THRESHOLD)
         {
-          PORTB |= _BV(LED_GREEN_PIN) | _BV(LED_RED_PIN);
+          PORTB &= ~(_BV(LED_GREEN_PIN) | _BV(LED_RED_PIN));
         }
         else
         {
-          PORTB |= _BV(LED_RED_PIN);
+          PORTB &= ~_BV(LED_RED_PIN);
         }
         s2 = s2_pulse;
         power_flags |= S2_ID;
         TIMER_TRIGGER_US(t4, LED_PULSE_TIMEOUT_US);
-#ifndef ENABLE_RESET_PIN
         CLEAR_EVENT(EV_GEIGER_PULSE);
-#endif
       }
       break;
 
     case s2_pulse:
       if IS_EVENT (EV_PULSE_STRETCH_TIMEOUT)
       {
-        PORTB &= ~(_BV(LED_RED_PIN) | _BV(LED_GREEN_PIN));
+        PORTB |= _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
         s2 = s2_idle;
         power_flags &= ~S2_ID;
         CLEAR_EVENT(EV_PULSE_STRETCH_TIMEOUT);
@@ -412,13 +413,13 @@ int main(void)
     switch (s3)
     {
     case s2_idle:
-      if IS_EVENT (EV_GEIGER_PULSE)
+      if IS_EVENT (EV_GEIGER_PULSE_2)
       {
         PORTB |= _BV(BUZZER_PIN);
         s3 = s2_pulse;
         power_flags |= S3_ID;
         TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
-        CLEAR_EVENT(EV_GEIGER_PULSE);
+        CLEAR_EVENT(EV_GEIGER_PULSE_2);
       }
       break;
 
@@ -426,7 +427,7 @@ int main(void)
       if IS_EVENT (EV_BUZZER_PULSE_TIMEOUT)
       {
         PORTB &= ~_BV(BUZZER_PIN);
-        s2 = s2_idle;
+        s3 = s2_idle;
         power_flags &= ~S3_ID;
         CLEAR_EVENT(EV_BUZZER_PULSE_TIMEOUT);
       }
