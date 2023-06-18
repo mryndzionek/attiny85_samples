@@ -9,7 +9,7 @@
 #include <util/atomic.h>
 
 // Uncommenting this will enable
-// the Attiny85's RESET (PB5) line control.
+// the Attiny85's RESET (PB5) line control (used for buzzer clicks).
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
 // #define ENABLE_RESET_PIN
 

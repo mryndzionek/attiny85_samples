@@ -4,7 +4,7 @@ attiny85 sample apps and libraries
 Introduction
 ------------
 
-Attiny85 MCU - some tests and example apps + I2C and LCD libraries
+ATtiny85 MCU - some tests and example apps + I2C and LCD libraries
 
 ### Low power LED blink (lp_blink.c)
 
@@ -42,9 +42,13 @@ Connections are simple:
 
 ### Simple Geiger Counter firmware (geiger.c)
 
-Simple Geiger Counter based on ATTINYx5 MCU.
+Simple Geiger Counter based on ATtinyx5 MCU.
 Tracks the radiation dose, but only signals two
-alarm levels on a two-color LED. Here is a veroboard-friendly PCB:
+alarm levels on a two-color LED. 
+No schematic yet, but here is a block diagram
+and a veroboard-style PCB (made with [VeroRoute](https://sourceforge.net/projects/veroroute/)).
+
+![geiger_block](design/geiger_block.png)
 
 ![geiger_pcb](design/geiger_pcb.png)
 
