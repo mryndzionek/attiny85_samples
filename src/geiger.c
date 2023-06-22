@@ -15,8 +15,9 @@
 
 #define PWM_DUTY (180)
 
-#define LED_GREEN_PIN (PB2)
-#define LED_RED_PIN (PB0)
+#define LED_GREEN_PIN (PB0)
+#define LED_RED_PIN (PB2)
+#define BOOST_PWM_PIN (PB4)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PIN (PB5)
 #endif
@@ -26,9 +27,10 @@
 
 #define BOOST_INTERVAL_TIMEOUT_US (4000)
 #define SHUTDOWN_TIMEOUT_US (100)
-#define LED_PULSE_TIMEOUT_MS (62)
+#define LED_PULSE_TIMEOUT_MS (32)
 #ifdef ENABLE_RESET_PIN
-#define BUZZER_PULSE_TIMEOUT_US (183)
+#define BUZZER_PULSE_TIMEOUT_US (180)
+#define BUZZER_FALLOFF_TIMEOUT_US (1000)
 #endif
 
 #define DOSE_CALC_TIMEOUT_MS (5000)
@@ -94,33 +96,36 @@ typedef enum
   s2_pulse,
 } s2_e;
 
-static volatile uint_fast16_t events;
-static volatile uint_fast16_t t1;
-static volatile uint_fast16_t t2;
-static volatile uint_fast16_t t4;
-static volatile uint_fast16_t t5;
 #ifdef ENABLE_RESET_PIN
-static volatile uint_fast16_t t6;
+typedef enum
+{
+  s3_idle = 0,
+  s3_pulse,
+  s3_falloff,
+} s3_e;
+#endif
+
+static volatile uint_fast8_t events;
+static volatile uint_fast8_t t1;
+static volatile uint_fast8_t t2;
+static volatile uint_fast8_t t4;
+static volatile uint_fast8_t t5;
+#ifdef ENABLE_RESET_PIN
+static volatile uint_fast8_t t6;
 #endif
 static volatile uint_fast16_t pulse_count;
 
 static void setup_pwm(void)
 {
-  // Enable PLL (64 MHz)
-  PLLCSR |= _BV(PLLE);
-
-  // Use PLL as timer clock source
-  PLLCSR |= _BV(PCKE);
-
-  // Set prescaler to 32 (64MHz / 32 = 2MHz)
-  TCCR1 |= _BV(CS11) | _BV(CS12);
+  // Set prescaler to 4 (8MHz / 4 = 2MHz)
+  TCCR1 |= _BV(CS10) | _BV(CS11);
 
   // compare value and top value
   OCR1B = 0;       // raise to increase PWM duty
   OCR1C = 250 - 1; // 2MHz / 250 = ~8kH
 
   // Enable OCRB output on PB4
-  DDRB |= _BV(PB4);
+  DDRB |= _BV(BOOST_PWM_PIN);
 
   // toggle PB4 when when timer reaches OCR1B (target)
   GTCCR |= _BV(COM1B0);
@@ -251,7 +256,7 @@ int main(void)
   s1_e s1 = s1_power_down;
   s2_e s2 = s2_idle;
 #ifdef ENABLE_RESET_PIN
-  s2_e s3 = s2_idle;
+  s3_e s3 = s3_idle;
 #endif
 
   uint_fast8_t power_flags = 0;
@@ -264,7 +269,7 @@ int main(void)
   MCUSR &= ~_BV(WDRF);
   ADCSRA &= ~_BV(ADEN);
 
-  DDRB |= _BV(PB4) | _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
+  DDRB |= _BV(BOOST_PWM_PIN) | _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
 #ifdef ENABLE_RESET_PIN
   DDRB |= _BV(BUZZER_PIN);
 #endif
@@ -324,8 +329,6 @@ int main(void)
       {
         power_timer0_enable();
         power_timer1_enable();
-        PLLCSR |= _BV(PLLE);
-        PLLCSR |= _BV(PCKE);
       }
     }
     sei();
@@ -392,7 +395,6 @@ int main(void)
         }
         s2 = s2_pulse;
         TIMER_LP_TRIGGER_MS(t4, LED_PULSE_TIMEOUT_MS);
-        CLEAR_EVENT(EV_GEIGER_PULSE);
       }
       break;
 
@@ -405,34 +407,44 @@ int main(void)
       }
       break;
     }
+    CLEAR_EVENT(EV_GEIGER_PULSE);
 
 #ifdef ENABLE_RESET_PIN
     switch (s3)
     {
-    case s2_idle:
+    case s3_idle:
       if IS_EVENT (EV_GEIGER_PULSE_2)
       {
         if (dose >= ORANGE_THRESHOLD)
         {
           PORTB |= _BV(BUZZER_PIN);
-          s3 = s2_pulse;
+          s3 = s3_pulse;
           power_flags |= S3_ID;
           TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
         }
-        CLEAR_EVENT(EV_GEIGER_PULSE_2);
       }
       break;
 
-    case s2_pulse:
+    case s3_pulse:
       if IS_EVENT (EV_BUZZER_PULSE_TIMEOUT)
       {
         PORTB &= ~_BV(BUZZER_PIN);
-        s3 = s2_idle;
+        s3 = s3_falloff;
+        TIMER_TRIGGER_US(t6, BUZZER_FALLOFF_TIMEOUT_US);
+        CLEAR_EVENT(EV_BUZZER_PULSE_TIMEOUT);
+      }
+      break;
+
+    case s3_falloff:
+      if IS_EVENT (EV_BUZZER_PULSE_TIMEOUT)
+      {
+        s3 = s3_idle;
         power_flags &= ~S3_ID;
         CLEAR_EVENT(EV_BUZZER_PULSE_TIMEOUT);
       }
       break;
     }
+    CLEAR_EVENT(EV_GEIGER_PULSE_2);
 #endif
 
     if IS_EVENT (EV_DOSE_CALC_TIMEOUT)
@@ -467,6 +479,9 @@ int main(void)
       // dose += dose / 25;
 
       // this calculation is for J305 tube,
+      // (some sources seem to indicate
+      // that this is in fact also the correct
+      // value for SBM-20 tube)
       // with conversion factor of k = 0.00812
       dose = cpm >> 1;
       dose += (dose >> 1) + (dose >> 3);
