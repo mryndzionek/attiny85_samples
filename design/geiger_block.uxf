@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<diagram program="umlet" version="15.0.0">
+<diagram program="umlet" version="15.1">
   <zoom_level>10</zoom_level>
   <element>
     <id>UMLGeneric</id>
@@ -10,7 +10,8 @@
       <h>140</h>
     </coordinates>
     <panel_attributes>symbol=component
-ATtiny25/45/85
+valign=center
+*ATtiny25/45/85*
 bg=yellow
 transparency=98</panel_attributes>
     <additional_attributes/>
@@ -24,6 +25,7 @@ transparency=98</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 3-stage voltage
 multiplier
 bg=yellow
@@ -51,6 +53,7 @@ m1=PWM\noutput</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 HV boost
 converter
 bg=yellow
@@ -79,7 +82,7 @@ transparency=98</panel_attributes>
     </coordinates>
     <panel_attributes>lt=()-[^]
 ~1:91 voltage
-feedback
+divider
 m2=analog comparator\ninput</panel_attributes>
     <additional_attributes>480.0;10.0;480.0;160.0;10.0;160.0;10.0;80.0</additional_attributes>
   </element>
@@ -104,6 +107,7 @@ m2=analog comparator\ninput</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 Geiger–Müller
 tube
 bg=yellow
@@ -119,6 +123,7 @@ transparency=98</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 Pulse shaping
 circuit
 
@@ -158,6 +163,7 @@ m2=digital\ninput</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 Bi-color
 LED
 bg=yellow
@@ -185,6 +191,7 @@ transparency=98</panel_attributes>
       <h>100</h>
     </coordinates>
     <panel_attributes>symbol=component
+valign=center
 Buzzer with
 resonant
 pulse amplifier
@@ -203,5 +210,65 @@ transparency=98</panel_attributes>
     <panel_attributes>lt=[^]-[^]
 </panel_attributes>
     <additional_attributes>180.0;10.0;180.0;40.0;10.0;40.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>170</x>
+      <y>300</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>PB0, PB2
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>320</x>
+      <y>350</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>PB4
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>270</x>
+      <y>400</y>
+      <w>90</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>PB1
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>170</x>
+      <y>400</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>PB3
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>280</x>
+      <y>300</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>PB5
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
   </element>
 </diagram>
