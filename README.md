@@ -43,8 +43,11 @@ Connections are simple:
 ### Simple Geiger Counter firmware (geiger.c)
 
 Simple Geiger Counter based on ATtinyx5 MCU.
-Tracks the radiation dose, but only signals two
-alarm levels on a two-color LED. 
+This is more of a Geiger alarm.
+Tracks the radiation dose internally, but only signals two
+alarm levels on a two-color LED and produces sound clicks
+if the alarm level is breached. It's also designed to
+be very low-power (battery life test ongoing).
 No schematic yet, but here is a block diagram
 and a veroboard-style PCB (made with [VeroRoute](https://sourceforge.net/projects/veroroute/)).
 
