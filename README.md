@@ -55,6 +55,9 @@ and a veroboard-style PCB (made with [VeroRoute](https://sourceforge.net/project
 
 ![geiger_pcb](design/geiger_pcb.png)
 
+The BJT transistor can also be MPSA42.
+The buzzer MOSFET should preferably logic level.
+
 The firmware is designed as a simple and lightweight
 cooperative scheduler maintaining in every state
 the lowest power level possible: 
