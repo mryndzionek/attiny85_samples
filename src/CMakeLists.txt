@@ -106,3 +106,12 @@ avr_add_executable(
 
 avr_target_link_libraries(ds3231_oled_clock u8g2)
 
+avr_add_executable(
+    nano_ammeter
+    i2c_master_usi.c
+    u8x8_avr.c
+    nano_ammeter.c
+)
+
+avr_target_link_libraries(nano_ammeter u8g2)
+
