@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<diagram program="umlet" version="15.0.0">
+<diagram program="umlet" version="15.1">
   <zoom_level>3</zoom_level>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>114</x>
-      <y>219</y>
+      <x>201</x>
+      <y>228</y>
       <w>87</w>
       <h>69</h>
     </coordinates>
@@ -16,7 +16,7 @@ TYPE:
     TIME_BASE
 
 RESOLUTION:
-    32us
+    100us
 valign=top
 bg=yellow
 transparency=98</panel_attributes>
@@ -25,8 +25,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>846</x>
-      <y>360</y>
+      <x>933</x>
+      <y>369</y>
       <w>87</w>
       <h>51</h>
     </coordinates>
@@ -46,8 +46,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>411</x>
-      <y>627</y>
+      <x>498</x>
+      <y>690</y>
       <w>339</w>
       <h>99</h>
     </coordinates>
@@ -63,8 +63,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>447</x>
-      <y>165</y>
+      <x>534</x>
+      <y>174</y>
       <w>6</w>
       <h>6</h>
     </coordinates>
@@ -74,8 +74,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>444</x>
-      <y>183</y>
+      <x>531</x>
+      <y>192</y>
       <w>96</w>
       <h>27</h>
     </coordinates>
@@ -92,8 +92,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>450</x>
-      <y>165</y>
+      <x>537</x>
+      <y>174</y>
       <w>27</w>
       <h>24</h>
     </coordinates>
@@ -103,8 +103,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>747</x>
-      <y>228</y>
+      <x>834</x>
+      <y>237</y>
       <w>111</w>
       <h>159</h>
     </coordinates>
@@ -118,8 +118,8 @@ DIV: 1
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>537</x>
-      <y>186</y>
+      <x>624</x>
+      <y>195</y>
       <w>57</w>
       <h>12</h>
     </coordinates>
@@ -130,8 +130,8 @@ BOOST_POLL_TIMEOUT</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>588</x>
-      <y>186</y>
+      <x>675</x>
+      <y>195</y>
       <w>12</w>
       <h>12</h>
     </coordinates>
@@ -141,8 +141,8 @@ BOOST_POLL_TIMEOUT</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>510</x>
-      <y>195</y>
+      <x>597</x>
+      <y>204</y>
       <w>90</w>
       <h>30</h>
     </coordinates>
@@ -153,8 +153,8 @@ else</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>597</x>
-      <y>186</y>
+      <x>684</x>
+      <y>195</y>
       <w>63</w>
       <h>48</h>
     </coordinates>
@@ -165,8 +165,8 @@ v_too_low();</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>549</x>
-      <y>228</y>
+      <x>636</x>
+      <y>237</y>
       <w>189</w>
       <h>45</h>
     </coordinates>
@@ -184,8 +184,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>660</x>
-      <y>252</y>
+      <x>747</x>
+      <y>261</y>
       <w>12</w>
       <h>12</h>
     </coordinates>
@@ -195,8 +195,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>669</x>
-      <y>252</y>
+      <x>756</x>
+      <y>261</y>
       <w>75</w>
       <h>12</h>
     </coordinates>
@@ -207,8 +207,8 @@ BOOST_INTERVAL_TIMEOUT</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>555</x>
-      <y>252</y>
+      <x>642</x>
+      <y>261</y>
       <w>111</w>
       <h>15</h>
     </coordinates>
@@ -220,8 +220,8 @@ TIMER_ADD(BOOST_INTERVAL_TIMEOUT)</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>420</x>
-      <y>267</y>
+      <x>507</x>
+      <y>276</y>
       <w>105</w>
       <h>30</h>
     </coordinates>
@@ -238,8 +238,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>522</x>
-      <y>261</y>
+      <x>609</x>
+      <y>270</y>
       <w>150</w>
       <h>27</h>
     </coordinates>
@@ -250,8 +250,8 @@ else</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>465</x>
-      <y>207</y>
+      <x>552</x>
+      <y>216</y>
       <w>54</w>
       <h>66</h>
     </coordinates>
@@ -262,8 +262,8 @@ SHUTDOWN_TIMEOUT</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>198</x>
-      <y>222</y>
+      <x>285</x>
+      <y>231</y>
       <w>219</w>
       <h>24</h>
     </coordinates>
@@ -271,14 +271,14 @@ SHUTDOWN_TIMEOUT</panel_attributes>
 NAME:
     BOOST_INTERVAL_TIMEOUT
 TIMEOUT:
-    4ms</panel_attributes>
+    5ms</panel_attributes>
     <additional_attributes>10.0;20.0;710.0;20.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>198</x>
-      <y>246</y>
+      <x>285</x>
+      <y>255</y>
       <w>219</w>
       <h>24</h>
     </coordinates>
@@ -286,14 +286,14 @@ TIMEOUT:
 NAME:
     SHUTDOWN_TIMEOUT
 TIMEOUT:
-    100us</panel_attributes>
+    200us</panel_attributes>
     <additional_attributes>10.0;20.0;710.0;20.0</additional_attributes>
   </element>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>411</x>
-      <y>126</y>
+      <x>498</x>
+      <y>135</y>
       <w>339</w>
       <h>189</h>
     </coordinates>
@@ -310,8 +310,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>459</x>
-      <y>387</y>
+      <x>546</x>
+      <y>396</y>
       <w>99</w>
       <h>27</h>
     </coordinates>
@@ -328,8 +328,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>468</x>
-      <y>369</y>
+      <x>555</x>
+      <y>378</y>
       <w>6</w>
       <h>6</h>
     </coordinates>
@@ -339,8 +339,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>471</x>
-      <y>369</y>
+      <x>558</x>
+      <y>378</y>
       <w>27</w>
       <h>24</h>
     </coordinates>
@@ -350,8 +350,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>240</x>
-      <y>396</y>
+      <x>327</x>
+      <y>405</y>
       <w>87</w>
       <h>51</h>
     </coordinates>
@@ -368,8 +368,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>324</x>
-      <y>420</y>
+      <x>411</x>
+      <y>429</y>
       <w>93</w>
       <h>9</h>
     </coordinates>
@@ -379,8 +379,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>594</x>
-      <y>387</y>
+      <x>681</x>
+      <y>396</y>
       <w>105</w>
       <h>45</h>
     </coordinates>
@@ -402,8 +402,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>555</x>
-      <y>396</y>
+      <x>642</x>
+      <y>405</y>
       <w>45</w>
       <h>12</h>
     </coordinates>
@@ -414,8 +414,8 @@ GEIGER_PULSE</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>198</x>
-      <y>267</y>
+      <x>285</x>
+      <y>276</y>
       <w>219</w>
       <h>108</h>
     </coordinates>
@@ -423,14 +423,14 @@ GEIGER_PULSE</panel_attributes>
 NAME:
     LED_PULSE_TIMEOUT
 TIMEOUT:
-    1ms</panel_attributes>
+    10ms</panel_attributes>
     <additional_attributes>10.0;10.0;460.0;10.0;460.0;340.0;710.0;340.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>489</x>
-      <y>411</y>
+      <x>576</x>
+      <y>420</y>
       <w>162</w>
       <h>45</h>
     </coordinates>
@@ -440,8 +440,8 @@ TIMEOUT:
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>411</x>
-      <y>333</y>
+      <x>498</x>
+      <y>342</y>
       <w>339</w>
       <h>132</h>
     </coordinates>
@@ -457,8 +457,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>453</x>
-      <y>672</y>
+      <x>540</x>
+      <y>735</y>
       <w>132</w>
       <h>42</h>
     </coordinates>
@@ -473,8 +473,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>471</x>
-      <y>654</y>
+      <x>558</x>
+      <y>717</y>
       <w>6</w>
       <h>6</h>
     </coordinates>
@@ -484,8 +484,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>474</x>
-      <y>654</y>
+      <x>561</x>
+      <y>717</y>
       <w>27</w>
       <h>24</h>
     </coordinates>
@@ -495,8 +495,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>516</x>
-      <y>687</y>
+      <x>603</x>
+      <y>750</y>
       <w>75</w>
       <h>15</h>
     </coordinates>
@@ -508,22 +508,22 @@ calc_dose();</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>747</x>
-      <y>396</y>
+      <x>834</x>
+      <y>405</y>
       <w>108</w>
-      <h>279</h>
+      <h>333</h>
     </coordinates>
     <panel_attributes>lt=.&gt;
 NAME:
     DOSE_CALC_TIMEOUT    
 EVERY: 5s</panel_attributes>
-    <additional_attributes>330.0;10.0;170.0;10.0;170.0;910.0;10.0;910.0</additional_attributes>
+    <additional_attributes>330.0;10.0;170.0;10.0;170.0;1090.0;10.0;1090.0</additional_attributes>
   </element>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>114</x>
-      <y>192</y>
+      <x>201</x>
+      <y>201</y>
       <w>84</w>
       <h>24</h>
     </coordinates>
@@ -537,8 +537,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>240</x>
-      <y>366</y>
+      <x>327</x>
+      <y>375</y>
       <w>84</w>
       <h>24</h>
     </coordinates>
@@ -551,8 +551,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>846</x>
-      <y>333</y>
+      <x>933</x>
+      <y>342</y>
       <w>84</w>
       <h>24</h>
     </coordinates>
@@ -566,10 +566,10 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>459</x>
-      <y>534</y>
-      <w>99</w>
-      <h>27</h>
+      <x>510</x>
+      <y>543</y>
+      <w>138</w>
+      <h>51</h>
     </coordinates>
     <panel_attributes>IDLE
 --
@@ -584,8 +584,8 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLSpecialState</id>
     <coordinates>
-      <x>468</x>
-      <y>516</y>
+      <x>555</x>
+      <y>525</y>
       <w>6</w>
       <h>6</h>
     </coordinates>
@@ -595,8 +595,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>471</x>
-      <y>516</y>
+      <x>558</x>
+      <y>525</y>
       <w>27</w>
       <h>24</h>
     </coordinates>
@@ -606,20 +606,17 @@ transparency=98</panel_attributes>
   <element>
     <id>UMLState</id>
     <coordinates>
-      <x>594</x>
+      <x>720</x>
       <y>534</y>
       <w>105</w>
-      <h>45</h>
+      <h>60</h>
     </coordinates>
-    <panel_attributes>ACTIVE
+    <panel_attributes>PULSE
 --
 ENTRY:
     BUZZER_PULSE_ON();
     TIMER_ADD(BUZZER_PULSE_TIMEOUT)
     REQUEST_POWER_LEVEL(IDLE);
-
-EXIT:
-    BUZZER_PULSE_OFF();
 
 valign=top
 bg=yellow
@@ -629,33 +626,34 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>555</x>
-      <y>543</y>
-      <w>45</w>
-      <h>12</h>
+      <x>606</x>
+      <y>576</y>
+      <w>120</w>
+      <h>18</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
-GEIGER_PULSE</panel_attributes>
-    <additional_attributes>10.0;20.0;130.0;20.0</additional_attributes>
+m2=dose &gt; ORANGE_THRESHOLD</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;30.0;380.0;30.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>489</x>
-      <y>558</y>
-      <w>162</w>
-      <h>45</h>
+      <x>726</x>
+      <y>591</y>
+      <w>108</w>
+      <h>60</h>
     </coordinates>
-    <panel_attributes>lt=-&gt;</panel_attributes>
-    <additional_attributes>520.0;70.0;520.0;130.0;10.0;130.0;10.0;10.0</additional_attributes>
+    <panel_attributes>lt=-&gt;
+BUZZER_PULSE_TIMEOUT</panel_attributes>
+    <additional_attributes>160.0;10.0;160.0;180.0;10.0;180.0</additional_attributes>
   </element>
   <element>
     <id>UMLGeneric</id>
     <coordinates>
-      <x>411</x>
-      <y>480</y>
+      <x>498</x>
+      <y>489</y>
       <w>339</w>
-      <h>132</h>
+      <h>186</h>
     </coordinates>
     <panel_attributes>symbol=component
 **BUZZER_PULSE_STRETCHER**
@@ -669,8 +667,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>324</x>
-      <y>420</y>
+      <x>411</x>
+      <y>429</y>
       <w>93</w>
       <h>123</h>
     </coordinates>
@@ -680,8 +678,8 @@ transparency=98</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>213</x>
-      <y>267</y>
+      <x>300</x>
+      <y>276</y>
       <w>204</w>
       <h>303</h>
     </coordinates>
@@ -689,7 +687,91 @@ transparency=98</panel_attributes>
 NAME:
     BUZZER_PULSE_TIMEOUT
 TIMEOUT:
-    183us</panel_attributes>
+    200s</panel_attributes>
     <additional_attributes>10.0;10.0;10.0;990.0;660.0;990.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>612</x>
+      <y>567</y>
+      <w>42</w>
+      <h>12</h>
+    </coordinates>
+    <panel_attributes>lt=-
+GEIGER_PULSE</panel_attributes>
+    <additional_attributes>120.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>603</x>
+      <y>567</y>
+      <w>12</w>
+      <h>12</h>
+    </coordinates>
+    <panel_attributes>type=decision</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>579</x>
+      <y>567</y>
+      <w>30</w>
+      <h>12</h>
+    </coordinates>
+    <panel_attributes>lt=-[]
+else</panel_attributes>
+    <additional_attributes>80.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>624</x>
+      <y>609</y>
+      <w>105</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>FALLOFF
+--
+ENTRY:
+    BUZZER_PULSE_OFF();
+    TIMER_ADD(BUZZER_FALLOFF_TIMEOUT)
+
+EXIT:
+    BUZZER_PULSE_OFF();
+
+valign=top
+bg=yellow
+transparency=98</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>546</x>
+      <y>591</y>
+      <w>84</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+BUZZER_FALLOFF_TIMEOUT</panel_attributes>
+    <additional_attributes>260.0;160.0;100.0;160.0;100.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>570</y>
+      <w>204</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+NAME:
+    BUZZER_FALLOFF_TIMEOUT
+TIMEOUT:
+    1ms</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0;660.0;100.0</additional_attributes>
   </element>
 </diagram>
