@@ -25,11 +25,11 @@
 #define ORANGE_THRESHOLD (50) // 0.5 µS/h
 #define RED_THRESHOLD (1000)  // 10 µS/h
 
-#define BOOST_INTERVAL_TIMEOUT_US (4000)
-#define SHUTDOWN_TIMEOUT_US (100)
-#define LED_PULSE_TIMEOUT_MS (32)
+#define BOOST_INTERVAL_TIMEOUT_US (5000)
+#define SHUTDOWN_TIMEOUT_US (200)
+#define LED_PULSE_TIMEOUT_US (10000)
 #ifdef ENABLE_RESET_PIN
-#define BUZZER_PULSE_TIMEOUT_US (180)
+#define BUZZER_PULSE_TIMEOUT_US (200)
 #define BUZZER_FALLOFF_TIMEOUT_US (1000)
 #endif
 
@@ -53,18 +53,18 @@
 #define S3_ID _BV(2)
 #endif
 
-// _tm can be t1, or t2
-// resolution is 64us
+// _tm can be t1, t2 or t4 (or t6)
+// resolution is 100us
 #define TIMER_TRIGGER_US(_tm, _us) \
   do                               \
   {                                \
     ATOMIC_BLOCK(ATOMIC_FORCEON)   \
     {                              \
-      _tm = 1 + (_us >> 6);        \
+      _tm = 1 + (_us / 100);       \
     }                              \
   } while (0)
 
-// _tm can be t4, or t5
+// _tm can be t5
 // resolution is 32ms
 #define TIMER_LP_TRIGGER_MS(_tm, _ms) \
   do                                  \
@@ -150,7 +150,7 @@ static void setup_wdt(void)
 {
   MCUSR &= ~_BV(WDRF);
   WDTCR |= (_BV(WDCE) | _BV(WDE));
-  WDTCR = _BV(WDIE) | _BV(WDP0); // Set Timeout to 32ms
+  WDTCR = _BV(WDIE) | _BV(WDP0); // Set Timeout to 64ms
 }
 
 static void setup_main_timer(void)
@@ -159,7 +159,7 @@ static void setup_main_timer(void)
   TCCR0B = 0x00;
   TCCR0B |= _BV(CS01); // prescaling clk / 8
   TCCR0A |= _BV(WGM01);
-  OCR0A = 64 - 1; // 1MHz / 64 = 15.625kHz = 64us
+  OCR0A = 100 - 1; // 1MHz / 100 = 10kHz = 100us
   TCNT0 = 0;
   TIMSK |= _BV(OCIE0A);
 }
@@ -184,15 +184,6 @@ static bool v_too_low(void)
 ISR(WDT_vect)
 {
   events |= EV_POWER_DOWN_TIMEOUT;
-
-  if (t4 > 0)
-  {
-    t4--;
-    if (t4 == 0)
-    {
-      events |= EV_LED_PULSE_TIMEOUT;
-    }
-  }
 
   if (t5 > 0)
   {
@@ -222,6 +213,15 @@ ISR(TIMER0_COMPA_vect)
     if (t2 == 0)
     {
       events |= EV_SHUTDOWN_TIMEOUT;
+    }
+  }
+
+  if (t4 > 0)
+  {
+    t4--;
+    if (t4 == 0)
+    {
+      events |= EV_LED_PULSE_TIMEOUT;
     }
   }
 
@@ -394,7 +394,8 @@ int main(void)
           PORTB &= ~_BV(LED_RED_PIN);
         }
         s2 = s2_pulse;
-        TIMER_LP_TRIGGER_MS(t4, LED_PULSE_TIMEOUT_MS);
+        power_flags |= S2_ID;
+        TIMER_TRIGGER_US(t4, LED_PULSE_TIMEOUT_US);
       }
       break;
 
@@ -403,6 +404,7 @@ int main(void)
       {
         PORTB |= _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
         s2 = s2_idle;
+        power_flags &= ~S2_ID;
         CLEAR_EVENT(EV_LED_PULSE_TIMEOUT);
       }
       break;
