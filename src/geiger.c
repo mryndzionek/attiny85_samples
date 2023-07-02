@@ -13,7 +13,7 @@
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
 // #define ENABLE_RESET_PIN
 
-#define PWM_DUTY (180)
+#define PWM_DUTY (220)
 
 #define LED_GREEN_PIN (PB0)
 #define LED_RED_PIN (PB2)
@@ -25,12 +25,12 @@
 #define ORANGE_THRESHOLD (50) // 0.5 µS/h
 #define RED_THRESHOLD (1000)  // 10 µS/h
 
-#define BOOST_INTERVAL_TIMEOUT_US (5000)
-#define SHUTDOWN_TIMEOUT_US (200)
-#define LED_PULSE_TIMEOUT_US (10000)
+#define BOOST_INTERVAL_TIMEOUT_US (2000)
+#define SHUTDOWN_TIMEOUT_US (400)
+#define LED_PULSE_TIMEOUT_US (20000)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PULSE_TIMEOUT_US (200)
-#define BUZZER_FALLOFF_TIMEOUT_US (1000)
+#define BUZZER_FALLOFF_TIMEOUT_US (2000)
 #endif
 
 #define DOSE_CALC_TIMEOUT_MS (5000)
@@ -117,12 +117,12 @@ static volatile uint_fast16_t pulse_count;
 
 static void setup_pwm(void)
 {
-  // Set prescaler to 4 (8MHz / 4 = 2MHz)
-  TCCR1 |= _BV(CS10) | _BV(CS11);
+  // Set prescaler to 8 (8MHz / 8 = 1MHz)
+  TCCR1 |= _BV(CS12);
 
   // compare value and top value
   OCR1B = 0;       // raise to increase PWM duty
-  OCR1C = 250 - 1; // 2MHz / 250 = ~8kH
+  OCR1C = 250 - 1; // 1MHz / 250 = 4kH
 
   // Enable OCRB output on PB4
   DDRB |= _BV(BOOST_PWM_PIN);
@@ -175,8 +175,7 @@ static bool v_too_low(void)
     {
       count++;
     }
-    i--;
-  } while (i);
+  } while (--i);
 
   return (count > 5);
 }
@@ -187,8 +186,7 @@ ISR(WDT_vect)
 
   if (t5 > 0)
   {
-    t5--;
-    if (t5 == 0)
+    if (--t5 == 0)
     {
       events |= EV_DOSE_CALC_TIMEOUT;
       TIMER_LP_TRIGGER_MS(t5, DOSE_CALC_TIMEOUT_MS);
@@ -200,8 +198,7 @@ ISR(TIMER0_COMPA_vect)
 {
   if (t1 > 0)
   {
-    t1--;
-    if (t1 == 0)
+    if (--t1 == 0)
     {
       events |= EV_BOOST_TIMEOUT;
     }
@@ -209,8 +206,7 @@ ISR(TIMER0_COMPA_vect)
 
   if (t2 > 0)
   {
-    t2--;
-    if (t2 == 0)
+    if (--t2 == 0)
     {
       events |= EV_SHUTDOWN_TIMEOUT;
     }
@@ -218,8 +214,7 @@ ISR(TIMER0_COMPA_vect)
 
   if (t4 > 0)
   {
-    t4--;
-    if (t4 == 0)
+    if (--t4 == 0)
     {
       events |= EV_LED_PULSE_TIMEOUT;
     }
@@ -228,8 +223,7 @@ ISR(TIMER0_COMPA_vect)
 #ifdef ENABLE_RESET_PIN
   if (t6 > 0)
   {
-    t6--;
-    if (t6 == 0)
+    if (--t6 == 0)
     {
       events |= EV_BUZZER_PULSE_TIMEOUT;
     }
@@ -302,7 +296,8 @@ int main(void)
       if (power_flags == 0)
       {
         TCNT0 = 0;
-        power_all_disable();
+        power_timer0_disable();
+        power_timer1_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
         setup_wdt();
       }
