@@ -42,6 +42,10 @@ Connections are simple:
 
 ### Simple Geiger Counter firmware (geiger.c)
 
+![geiger_gif](design/geiger.gif)
+
+![geiger_photo](design/geiger_photo.png)
+
 Simple Geiger Counter based on ATtinyx5 MCU.
 This is more of a Geiger alarm.
 Tracks the radiation dose internally, but only signals two
