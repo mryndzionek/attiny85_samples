@@ -77,6 +77,11 @@ avr_add_executable(
     geiger.c
 )
 
+avr_add_executable(
+    alarm
+    alarm.c
+)
+
 file(GLOB U8G2_SRCS
      "../external/u8g2/csrc/*.c"
 )

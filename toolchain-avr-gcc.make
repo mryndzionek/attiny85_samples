@@ -8,7 +8,7 @@
 # PROGRAM_EEPROM : enable eeprom programming (doesn't work on arduino)
 
 #generic avr flags
-set(AVR_CFLAGS "-ffunction-sections -fdata-sections" CACHE STRING "AVR compilation flags")
+set(AVR_CFLAGS "-ffunction-sections -fdata-sections --param=min-pagesize=0" CACHE STRING "AVR compilation flags")
 set(AVR_LFLAGS "-Wl,--relax,--gc-sections" CACHE STRING "AVR link flags")
 
 #find toolchain programs
@@ -67,7 +67,7 @@ function(avr_add_executable_compilation EXECUTABLE)
 
 	# display size info after compilation
 	add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
-		COMMAND ${AVR-SIZE} -C --mcu=${AVR_MCU} ${EXECUTABLE_ELF})
+		COMMAND ${AVR-SIZE} ${EXECUTABLE_ELF})
 endfunction(avr_add_executable_compilation)
 
 function(avr_add_executable_upload ${EXECUTABLE})
