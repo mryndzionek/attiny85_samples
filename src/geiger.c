@@ -8,6 +8,8 @@
 #include <util/delay.h>
 #include <util/atomic.h>
 
+// Remember to set F_CPU to 8Mhz - '-U lfuse:w:0xE2:m'
+
 // Uncommenting this will enable
 // the Attiny85's RESET (PB5) line control (used for buzzer clicks).
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
@@ -291,7 +293,7 @@ int main(void)
     cli();
     _events_ |= events;
     events = 0;
-    if (events == 0)
+    if (_events_ == 0)
     {
       if (power_flags == 0)
       {
