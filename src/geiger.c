@@ -299,45 +299,44 @@ int main(void)
 
   for (;;)
   {
-    cli();
-    _events_ |= events;
-    events = 0;
-    if (_events_ == 0)
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
-      if (power_flags == 0)
+      _events_ |= events;
+      events = 0;
+      if (_events_ == 0)
       {
-        TCNT0 = 0;
-        power_timer0_disable();
-        power_timer1_disable();
-        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-        setup_wdt();
-      }
-      else
-      {
-        set_sleep_mode(SLEEP_MODE_IDLE);
-      }
+        if (power_flags == 0)
+        {
+          TCNT0 = 0;
+          power_timer0_disable();
+          power_timer1_disable();
+          set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+          setup_wdt();
+        }
+        else
+        {
+          set_sleep_mode(SLEEP_MODE_IDLE);
+        }
 
-      do
-      {
-        sleep_enable();
-        sei();
-        sleep_cpu();
-        sleep_disable();
+        do
+        {
+          sleep_enable();
+          NONATOMIC_BLOCK(NONATOMIC_FORCEOFF)
+          {
+            sleep_cpu();
+            sleep_disable();
+          }
+          _events_ |= events;
+          events = 0;
+        } while (_events_ == 0);
 
-        cli();
-        _events_ |= events;
-        events = 0;
-      } while (_events_ == 0);
-
-      sei();
-
-      if (power_flags == 0)
-      {
-        power_timer0_enable();
-        power_timer1_enable();
+        if (power_flags == 0)
+        {
+          power_timer0_enable();
+          power_timer1_enable();
+        }
       }
     }
-    sei();
 
     switch (s1)
     {
