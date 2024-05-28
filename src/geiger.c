@@ -15,7 +15,7 @@
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
 // #define ENABLE_RESET_PIN
 
-#define PWM_DUTY (220)
+#define PWM_DUTY (230)
 
 #define LED_GREEN_PIN (PB0)
 #define LED_RED_PIN (PB2)
@@ -169,7 +169,7 @@ static void setup_main_timer(void)
 static bool v_too_low(void)
 {
   uint_fast8_t count = 0;
-  uint_fast8_t i = 10;
+  uint_fast8_t i = 20;
 
   do
   {
