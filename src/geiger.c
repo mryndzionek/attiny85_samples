@@ -15,6 +15,10 @@
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
 // #define ENABLE_RESET_PIN
 
+// In this mode clicks are enabled regardless of the dose
+// and red LED flashes when the boost converter is enabled
+// #define HV_TEST_MODE
+
 #define PWM_DUTY (230)
 
 #define LED_GREEN_PIN (PB0)
@@ -274,6 +278,11 @@ int main(void)
   PORTB &= ~_BV(BUZZER_PIN);
 #endif
 
+  // just a reset indication
+  PORTB &= ~_BV(LED_RED_PIN);
+  _delay_ms(1000);
+  PORTB |= _BV(LED_RED_PIN);
+
   setup_pwm();
   setup_main_timer();
   setup_comparator();
@@ -337,6 +346,9 @@ int main(void)
       {
         if (v_too_low())
         {
+#ifdef HV_TEST_MODE
+          PORTB &= ~_BV(LED_RED_PIN);
+#endif
           OCR1B = PWM_DUTY;
           s1 = s1_boosting;
           TIMER_TRIGGER_US(t1, BOOST_INTERVAL_TIMEOUT_US);
@@ -351,6 +363,9 @@ int main(void)
       {
         if (!v_too_low())
         {
+#ifdef HV_TEST_MODE
+          PORTB |= _BV(LED_RED_PIN);
+#endif
           OCR1B = 0;
           s1 = s1_powering_down;
           TIMER_TRIGGER_US(t2, SHUTDOWN_TIMEOUT_US);
@@ -378,6 +393,7 @@ int main(void)
     case s2_idle:
       if IS_EVENT (EV_GEIGER_PULSE)
       {
+#ifndef HV_TEST_MODE
         if (dose < ORANGE_THRESHOLD)
         {
           PORTB &= ~_BV(LED_GREEN_PIN);
@@ -390,6 +406,7 @@ int main(void)
         {
           PORTB &= ~_BV(LED_RED_PIN);
         }
+#endif
         s2 = s2_pulse;
         power_flags |= S2_ID;
         TIMER_TRIGGER_US(t4, LED_PULSE_TIMEOUT_US);
@@ -399,7 +416,9 @@ int main(void)
     case s2_pulse:
       if IS_EVENT (EV_LED_PULSE_TIMEOUT)
       {
+#ifndef HV_TEST_MODE
         PORTB |= _BV(LED_RED_PIN) | _BV(LED_GREEN_PIN);
+#endif
         s2 = s2_idle;
         power_flags &= ~S2_ID;
         CLEAR_EVENT(EV_LED_PULSE_TIMEOUT);
@@ -414,13 +433,17 @@ int main(void)
     case s3_idle:
       if IS_EVENT (EV_GEIGER_PULSE_2)
       {
+#ifndef HV_TEST_MODE
         if (dose >= ORANGE_THRESHOLD)
         {
+#endif
           PORTB |= _BV(BUZZER_PIN);
           s3 = s3_pulse;
           power_flags |= S3_ID;
           TIMER_TRIGGER_US(t6, BUZZER_PULSE_TIMEOUT_US);
+#ifndef HV_TEST_MODE
         }
+#endif
       }
       break;
 
