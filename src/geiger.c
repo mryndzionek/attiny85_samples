@@ -13,13 +13,14 @@
 // Uncommenting this will enable
 // the Attiny85's RESET (PB5) line control (used for buzzer clicks).
 // Fuses need to be changed for that to (-U hfuse:w:0x5F:m)
-// #define ENABLE_RESET_PIN
+#define ENABLE_RESET_PIN
 
 // In this mode clicks are enabled regardless of the dose
 // and red LED flashes when the boost converter is enabled
 // #define HV_TEST_MODE
 
 #define PWM_DUTY (150)
+#define PWM_COUNT (6)
 
 #define LED_GREEN_PIN (PB0)
 #define LED_RED_PIN (PB2)
@@ -59,7 +60,7 @@
 #define S3_ID _BV(2)
 #endif
 
-// _tm can be t1, t2 or t4 (or t6)
+// _tm can be t4 (or t6)
 // resolution is 64us
 #define TIMER_TRIGGER_US(_tm, _us) \
   do                               \
@@ -112,14 +113,14 @@ typedef enum
 #endif
 
 static volatile uint_fast8_t events;
-static volatile uint_fast8_t t1;
-static volatile uint_fast8_t t2;
 static volatile uint_fast8_t t4;
 static volatile uint_fast8_t t5;
 #ifdef ENABLE_RESET_PIN
 static volatile uint_fast8_t t6;
 #endif
 static volatile uint_fast16_t pulse_count;
+static volatile uint_fast8_t pwm_counter;
+static volatile uint_fast8_t pwm_shutdown;
 
 static void setup_pwm(void)
 {
@@ -141,6 +142,9 @@ static void setup_pwm(void)
 
   // sometimes required for old, glitchy chips.
   TCCR1 |= _BV(COM1A0);
+
+  TCNT1 = 0;
+  TIMSK |= _BV(TOIE1);
 }
 
 static void setup_comparator(void)
@@ -202,22 +206,6 @@ ISR(WDT_vect)
 
 ISR(TIMER0_COMPA_vect)
 {
-  if (t1 > 0)
-  {
-    if (--t1 == 0)
-    {
-      events |= EV_BOOST_TIMEOUT;
-    }
-  }
-
-  if (t2 > 0)
-  {
-    if (--t2 == 0)
-    {
-      events |= EV_SHUTDOWN_TIMEOUT;
-    }
-  }
-
   if (t4 > 0)
   {
     if (--t4 == 0)
@@ -248,6 +236,23 @@ ISR(PCINT0_vect)
 #ifdef ENABLE_RESET_PIN
     events |= EV_GEIGER_PULSE_2;
 #endif
+  }
+}
+
+ISR(TIMER1_OVF_vect)
+{
+  if (pwm_counter > 0)
+  {
+    if (--pwm_counter == 0)
+    {
+      events |= EV_BOOST_TIMEOUT;
+    }
+  }
+
+  if (pwm_shutdown)
+  {
+    pwm_shutdown = 0;
+    events |= EV_SHUTDOWN_TIMEOUT;
   }
 }
 
@@ -350,7 +355,11 @@ int main(void)
 #endif
           OCR1B = PWM_DUTY;
           s1 = s1_boosting;
-          TIMER_TRIGGER_US(t1, BOOST_INTERVAL_TIMEOUT_US);
+          ATOMIC_BLOCK(ATOMIC_FORCEON)
+          {
+            TCNT1 = 0;
+            pwm_counter = PWM_COUNT;
+          }
           power_flags |= S1_ID;
         }
         CLEAR_EVENT(EV_POWER_DOWN_TIMEOUT);
@@ -365,13 +374,19 @@ int main(void)
 #ifdef HV_TEST_MODE
           PORTB |= _BV(LED_RED_PIN);
 #endif
-          OCR1B = 0;
           s1 = s1_powering_down;
-          TIMER_TRIGGER_US(t2, SHUTDOWN_TIMEOUT_US);
+          ATOMIC_BLOCK(ATOMIC_FORCEON)
+          {
+            OCR1B = 0;
+            pwm_shutdown = 1;
+          }
         }
         else
         {
-          TIMER_TRIGGER_US(t1, BOOST_INTERVAL_TIMEOUT_US);
+          ATOMIC_BLOCK(ATOMIC_FORCEON)
+          {
+            pwm_counter = PWM_COUNT;
+          }
         }
         CLEAR_EVENT(EV_BOOST_TIMEOUT);
       }
