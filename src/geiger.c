@@ -19,7 +19,7 @@
 // and red LED flashes when the boost converter is enabled
 // #define HV_TEST_MODE
 
-#define PWM_DUTY (230)
+#define PWM_DUTY (150)
 
 #define LED_GREEN_PIN (PB0)
 #define LED_RED_PIN (PB2)
@@ -32,8 +32,8 @@
 #define RED_THRESHOLD (1000)  // 10 µS/h
 
 #define BOOST_INTERVAL_TIMEOUT_US (2000)
-#define SHUTDOWN_TIMEOUT_US (400)
-#define LED_PULSE_TIMEOUT_US (20000)
+#define SHUTDOWN_TIMEOUT_US (600)
+#define LED_PULSE_TIMEOUT_US (16000)
 #ifdef ENABLE_RESET_PIN
 #define BUZZER_PULSE_TIMEOUT_US (200)
 #define BUZZER_FALLOFF_TIMEOUT_US (2000)
@@ -60,13 +60,13 @@
 #endif
 
 // _tm can be t1, t2 or t4 (or t6)
-// resolution is 100us
+// resolution is 64us
 #define TIMER_TRIGGER_US(_tm, _us) \
   do                               \
   {                                \
     ATOMIC_BLOCK(ATOMIC_FORCEON)   \
     {                              \
-      _tm = 1 + (_us / 100);       \
+      _tm = 1 + (_us >> 6);        \
     }                              \
   } while (0)
 
@@ -123,12 +123,12 @@ static volatile uint_fast16_t pulse_count;
 
 static void setup_pwm(void)
 {
-  // Set prescaler to 8 (8MHz / 8 = 1MHz)
-  TCCR1 |= _BV(CS12);
+  // Set prescaler to 16 (8MHz / 16 = 500kHz)
+  TCCR1 |= _BV(CS12) | _BV(CS10);
 
   // compare value and top value
   OCR1B = 0;       // raise to increase PWM duty
-  OCR1C = 250 - 1; // 1MHz / 250 = 4kH
+  OCR1C = 250 - 1; // 500kHz / 250 = 2kHz
 
   // Enable OCRB output on PB4
   DDRB |= _BV(BOOST_PWM_PIN);
