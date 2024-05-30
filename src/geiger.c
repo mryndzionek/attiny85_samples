@@ -19,7 +19,7 @@
 // and red LED flashes when the boost converter is enabled
 // #define HV_TEST_MODE
 
-#define PWM_DUTY (150)
+#define PWM_DUTY (136)
 #define PWM_COUNT (6)
 
 #define LED_GREEN_PIN (PB0)
@@ -144,7 +144,7 @@ static void setup_pwm(void)
   TCCR1 |= _BV(COM1A0);
 
   TCNT1 = 0;
-  TIMSK |= _BV(TOIE1);
+  TIMSK &= ~(_BV(TOIE1) | _BV(OCIE1B));
 }
 
 static void setup_comparator(void)
@@ -187,7 +187,7 @@ static bool v_too_low(void)
     }
   } while (--i);
 
-  return (count > 5);
+  return (count > 10);
 }
 
 ISR(WDT_vect)
@@ -204,7 +204,7 @@ ISR(WDT_vect)
   }
 }
 
-ISR(TIMER0_COMPA_vect)
+ISR(TIM0_COMPA_vect)
 {
   if (t4 > 0)
   {
@@ -239,7 +239,16 @@ ISR(PCINT0_vect)
   }
 }
 
-ISR(TIMER1_OVF_vect)
+ISR(TIM1_OVF_vect)
+{
+  if (pwm_shutdown)
+  {
+    pwm_shutdown = 0;
+    events |= EV_SHUTDOWN_TIMEOUT;
+  }
+}
+
+ISR(TIM1_COMPB_vect)
 {
   if (pwm_counter > 0)
   {
@@ -247,12 +256,6 @@ ISR(TIMER1_OVF_vect)
     {
       events |= EV_BOOST_TIMEOUT;
     }
-  }
-
-  if (pwm_shutdown)
-  {
-    pwm_shutdown = 0;
-    events |= EV_SHUTDOWN_TIMEOUT;
   }
 }
 
@@ -353,11 +356,12 @@ int main(void)
 #ifdef HV_TEST_MODE
           PORTB &= ~_BV(LED_RED_PIN);
 #endif
-          OCR1B = PWM_DUTY;
           s1 = s1_boosting;
           ATOMIC_BLOCK(ATOMIC_FORCEON)
           {
+            OCR1B = PWM_DUTY;
             TCNT1 = 0;
+            TIMSK |= _BV(OCIE1B);
             pwm_counter = PWM_COUNT;
           }
           power_flags |= S1_ID;
@@ -378,6 +382,8 @@ int main(void)
           ATOMIC_BLOCK(ATOMIC_FORCEON)
           {
             OCR1B = 0;
+            TIMSK &= ~_BV(OCIE1B);
+            TIMSK |= _BV(TOIE1);
             pwm_shutdown = 1;
           }
         }
@@ -396,6 +402,10 @@ int main(void)
       if IS_EVENT (EV_SHUTDOWN_TIMEOUT)
       {
         s1 = s1_power_down;
+        ATOMIC_BLOCK(ATOMIC_FORCEON)
+        {
+          TIMSK &= ~_BV(TOIE1);
+        }
         power_flags &= ~S1_ID;
         CLEAR_EVENT(EV_SHUTDOWN_TIMEOUT);
       }
