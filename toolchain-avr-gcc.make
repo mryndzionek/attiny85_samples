@@ -8,7 +8,7 @@
 # PROGRAM_EEPROM : enable eeprom programming (doesn't work on arduino)
 
 #generic avr flags
-set(AVR_CFLAGS "-ffunction-sections -fdata-sections --param=min-pagesize=0" CACHE STRING "AVR compilation flags")
+set(AVR_CFLAGS "-ffunction-sections -fdata-sections" CACHE STRING "AVR compilation flags")
 set(AVR_LFLAGS "-Wl,--relax,--gc-sections" CACHE STRING "AVR link flags")
 
 #find toolchain programs
