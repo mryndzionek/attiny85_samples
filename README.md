@@ -79,6 +79,11 @@ the lowest power level possible:
 ![oled_3](images/oled_3.png)
 
 
+### Speech
+
+Simple speech synthesis test app containing all the phrases needed
+to implement a talking clock (and more).
+
 Configuring
 -----------
 

@@ -16,4 +16,16 @@ __attribute__((always_inline)) fix16_t fix_mul(fix16_t x, fix16_t y)
     return (fix16_t)(res >> 10);
 }
 
+static inline fix16_t i16_to_fix(int16_t x)
+{
+    if (x >= 0)
+    {
+        return x >> 2;
+    }
+    else
+    {
+        return -(abs(x) >> 2);
+    }
+}
+
 #endif

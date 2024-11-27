@@ -67,6 +67,12 @@ if(${AVR_MCU} STREQUAL "attiny85")
         annoyatron.c
         snd/snd_insect.c
     )
+
+    avr_add_executable(
+        speech
+        speech.c
+        speech_synth.c
+    )
 endif()
 
 avr_add_executable(
