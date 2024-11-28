@@ -90,6 +90,11 @@ avr_add_executable(
     alarm.c
 )
 
+avr_add_executable(
+    candle
+    candle.c
+)
+
 if(${AVR_MCU} STREQUAL "attiny85")
     file(GLOB U8G2_SRCS
          "../external/u8g2/csrc/*.c"

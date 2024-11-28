@@ -84,6 +84,10 @@ the lowest power level possible:
 Simple speech synthesis test app containing all the phrases needed
 to implement a talking clock (and more).
 
+### Candle
+
+Simple, 2xLED candle simulation. Based on ATTINY13 code from [here](https://sourceforge.net/projects/avrcandle/).
+
 Configuring
 -----------
 
