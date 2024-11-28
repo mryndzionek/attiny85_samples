@@ -90,6 +90,7 @@ avr_add_executable(
     alarm.c
 )
 
+# 1MHz clock - -U lfuse:w:0x62:m -U hfuse:w:0xdf:m
 avr_add_executable(
     candle
     candle.c

@@ -4,7 +4,6 @@
 #include <avr/wdt.h>
 #include <avr/power.h>
 
-#include <util/delay.h>
 #include <util/atomic.h>
 
 #include <stdbool.h>
@@ -27,7 +26,11 @@ ISR(TIMER0_OVF_vect)
         g_tcnt--;
 }
 
-static inline uint16_t rand()
+ISR(WDT_vect)
+{
+}
+
+static inline uint16_t rand(void)
 {
     static uint16_t g_lfsr = 1;
 #define RNDMASK 0xB400u
@@ -45,11 +48,77 @@ enum
     CFG_DMAX = 2
 };
 
+static bool is_dark(void)
+{
+    static bool is_dark = false;
+    static uint32_t adc_val = 0;
+    static uint8_t adc_count = 0;
+
+    ADCSRA |= _BV(ADSC);
+    while (ADCSRA & _BV(ADSC))
+        ;
+
+    uint16_t adc_l = ADCL;
+    adc_val += (ADCH << 8) | adc_l;
+
+    if (++adc_count == 16)
+    {
+        adc_count = 0;
+        adc_val /= 16;
+
+        switch (is_dark)
+        {
+        case true:
+            if (adc_val >= 110)
+            {
+                is_dark = false;
+            }
+            break;
+
+        case false:
+            if (adc_val <= 70)
+            {
+                is_dark = true;
+            }
+            break;
+        }
+        adc_val = 0;
+    }
+
+    return is_dark;
+}
+
+static void deep_sleep(uint8_t i)
+{
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    {
+        ADCSRA &= ~_BV(ADEN);
+        power_all_disable();
+        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    }
+
+    while (i--)
+    {
+        MCUSR &= ~_BV(WDRF);
+        WDTCR |= (_BV(WDCE) | _BV(WDE));
+        WDTCR = _BV(WDP2) | _BV(WDP0);
+        WDTCR |= _BV(WDIE);
+        sleep_mode();
+    }
+
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    {
+        power_all_enable();
+        set_sleep_mode(SLEEP_MODE_IDLE);
+        ADCSRA |= _BV(ADEN);
+    }
+}
+
 static void candle(void)
 {
     static uint8_t g_cfg;
     // OCA&OCB PWM enabled; fast PWM mode 3
-    TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(COM0B0) | _BV(WGM01) | _BV(WGM00);
+    TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
     TCCR0B = _BV(CS00); // CK/1
 
     void out1(uint8_t v)
@@ -59,7 +128,7 @@ static void candle(void)
 
     void out2(uint8_t v)
     {
-        OCR0B = v;
+        OCR0B = 0xff - v;
     }
 
     void cfgup(void)
@@ -83,7 +152,7 @@ static void candle(void)
     int16_t pow = 0;
     int16_t powad = 0;
 
-    while (1)
+    while (true)
     {
         enum
         {
@@ -109,8 +178,6 @@ static void candle(void)
 
         if (g_cfg & CFG_MODE)
         {
-            // PB3=1 -> mode 1
-
             // flame position
             posr = ((r >> 6) & 0x1ff) - 0x80;
             // bandpass filter
@@ -120,8 +187,6 @@ static void candle(void)
         }
         else
         {
-            // PB3=0 -> mode 0
-
             // flame position
             posr = ((r >> 6) & 0x7f) + 0x40;
             // bandpass filter
@@ -152,9 +217,23 @@ static void candle(void)
 
         pow2 = ((uint16_t)pow * (uint16_t)pow) >> 8;
 
+        if (!is_dark())
+        {
+            out1(0);
+            out2(0);
+            PORTB &= (~(uint8_t)PORTBMASK);
+            do
+            {
+                deep_sleep(1);
+            } while (!is_dark());
+        }
+
         // wait for sync
         while (g_tcnt)
-            asm volatile("sleep");
+        {
+            sleep_mode();
+        }
+
         // set delay
         switch (g_cfg & 3)
         {
@@ -186,11 +265,23 @@ static void candle(void)
     }
 }
 
+static void adc_init(void)
+{
+    PORTB &= ~_BV(PB2); // Disable pull-up
+    ADCSRA |= _BV(ADEN);
+    ADMUX = _BV(0); // configuring PB2 to take input
+}
+
 int main(void)
 {
+    ATOMIC_BLOCK(ATOMIC_FORCEON)
+    {
+        MCUSR &= ~_BV(WDRF);
+    }
+
     // init:
     DDRB = PORTBMASK;
-    PORTB = ((uint8_t)~PORTBMASK);
+    PORTB &= (~(uint8_t)PORTBMASK);
 
     // system clock prescaler:
     CLKPR = _BV(CLKPCE);
@@ -201,19 +292,13 @@ int main(void)
     // OVF interrupt
     g_tcnt = 0;
     TIMSK = _BV(TOIE0);
-    asm volatile("sei");
-    // enable sleep
-    MCUCR = _BV(SE);
+
+    adc_init();
+    sei();
 
     // disable comparator:
     SBI(ACSR, ACD);
-    // shut down ADC:
-    PRR = _BV(PRADC);
 
     g_tcnt = 16;
-    // cfg(TRUE);
     candle();
-
-    while (1)
-        ;
 }
