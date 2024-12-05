@@ -37,7 +37,7 @@ intervals when left in the dark. The sounds/noises are:
 
 Connections are simple:
  - PB1/PB4 - piezo buzzer
- - PB2 - LDR (light-dependent resistor) to VCC and a 10k resistor to GND
+ - PB2 - LDR (light-dependent resistor) to VCC and a 47k resistor to GND
 
 
 ### Simple Geiger Counter firmware (geiger.c)

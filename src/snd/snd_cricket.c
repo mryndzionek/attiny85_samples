@@ -5,7 +5,7 @@
 
 #include "annoyatron.h"
 
-const uint16_t SND_DIV = 62;
+const uint16_t SND_DIV = 31;
 
 static const uint8_t wavtable[] PROGMEM = {
     0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73,
@@ -76,7 +76,6 @@ static const uint8_t wavtable[] PROGMEM = {
 static uint16_t rnd(uint16_t range)
 {
     static uint16_t lfsr = 0xACE1u;
-
     unsigned lsb = lfsr & 1;
     lfsr >>= 1;
     if (lsb)
@@ -90,17 +89,15 @@ static uint16_t rnd(uint16_t range)
 bool snd_get_sample(uint8_t *sample)
 {
     static uint16_t p = 0;
-    static uint8_t level = 4;
 
     if (p == sizeof(wavtable))
     {
         p = 0;
-        level = 2 + rnd(4);
         return true;
     }
     else
     {
-        *sample = pgm_read_byte(&wavtable[p++]) / level;
+        *sample = pgm_read_byte(&wavtable[p++]);
         return false;
     }
 }
@@ -114,7 +111,7 @@ void snd_wait(void)
     {
         c = 0;
         count = 2 + rnd(4);
-        annoy_deep_sleep(1);
+        annoy_deep_sleep(2 + rnd(10));
     }
     else
     {

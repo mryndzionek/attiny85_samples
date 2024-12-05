@@ -6,7 +6,7 @@
 #include "fix.h"
 #include "annoyatron.h"
 
-const uint16_t SND_DIV = 125;
+const uint16_t SND_DIV = 62;
 
 static const fix16_t sine_tab[1024] PROGMEM = {
     0x0000, 0x0006, 0x000D, 0x0013, 0x0019, 0x001F, 0x0026, 0x002C, 0x0032, 0x0039, 0x003F, 0x0045, 0x004B, 0x0052, 0x0058, 0x005E,
@@ -105,7 +105,7 @@ bool snd_get_sample(uint8_t *sample)
     }
 
     fix16_t v = pgm_read_word(&sine_tab[phase >> 6]);
-    *sample = ((v / 90) + 128);
+    *sample = ((v / 64) + 128);
     phase += f * 8;
 
     if (++i == len)

@@ -10,7 +10,7 @@
 
 #include "snd/snd.h"
 
-#define USE_BH1750
+// #define USE_BH1750
 
 #ifdef USE_BH1750
 #include "i2c_master_usi.h"
@@ -25,9 +25,8 @@
 static void adc_init(void)
 {
     ADCSRA |= _BV(ADEN);
-    ADMUX = _BV(0); // configuring PB2 to take input
-    ADCSRB = 0x00;  // Configuring free running mode
-    ADCSRA |= (1 << ADSC) | (1 << ADATE);
+    PORTB &= ~_BV(PB2); // Disable pull-up
+    ADMUX = _BV(0);     // configuring PB2 to take input
 }
 #endif
 
@@ -104,28 +103,34 @@ static bool is_dark(void)
 #else
 static bool is_dark(void)
 {
+    static bool is_dark = false;
     uint32_t adc_val = 0;
 
-    PORTB |= _BV(PB3);
-    for (uint8_t i = 0; i < 20; i++)
+    ADCSRA |= _BV(ADSC);
+    while (ADCSRA & _BV(ADSC))
+        ;
+
+    uint16_t adc_l = ADCL;
+    adc_val += (ADCH << 8) | adc_l;
+
+    switch (is_dark)
     {
-        uint16_t adc_l = ADCL;
-        adc_val += (ADCH << 8) | adc_l;
-        ADCSRA |= _BV(ADIF);
-        _delay_us(200);
+    case true:
+        if (adc_val >= 300)
+        {
+            is_dark = false;
+        }
+        break;
+
+    case false:
+        if (adc_val <= 200)
+        {
+            is_dark = true;
+        }
+        break;
     }
 
-    adc_val /= 20;
-    PORTB &= ~_BV(PB3);
-
-    if (adc_val <= 80)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return is_dark;
 }
 #endif
 
@@ -133,6 +138,9 @@ void annoy_deep_sleep(uint8_t i)
 {
     ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
+#ifndef USE_BH1750
+        ADCSRA &= ~_BV(ADEN);
+#endif
         power_all_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     }
@@ -141,11 +149,8 @@ void annoy_deep_sleep(uint8_t i)
     {
         MCUSR &= ~_BV(WDRF);
         WDTCR |= (_BV(WDCE) | _BV(WDE));
-        WDTCR = _BV(WDP3) | _BV(WDP0);
+        WDTCR = _BV(WDP3) | _BV(WDP0); // 8s sleep
         WDTCR |= _BV(WDIE);
-#ifndef USE_BH1750
-        ADCSRA &= ~_BV(ADEN);
-#endif
         sleep_mode();
     }
 
@@ -165,6 +170,9 @@ int main(void)
     ATOMIC_BLOCK(ATOMIC_FORCEON)
     {
         MCUSR &= ~_BV(WDRF);
+        // system clock prescaler:
+        CLKPR = _BV(CLKPCE);
+        CLKPR = _BV(CLKPS0); // osc/2 = 4MHz
         setup();
     }
 
@@ -187,7 +195,7 @@ int main(void)
         }
         else
         {
-            annoy_deep_sleep(20);
+            annoy_deep_sleep(4);
         }
     }
 }
