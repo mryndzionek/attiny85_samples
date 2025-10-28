@@ -69,7 +69,7 @@ static bool is_dark(void)
         switch (is_dark)
         {
         case true:
-            if (adc_val >= 110)
+            if (adc_val >= 300)
             {
                 is_dark = false;
             }

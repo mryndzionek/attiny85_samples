@@ -89,6 +89,11 @@ to implement a talking clock (and more).
 Simple, 2xLED candle simulation. Based on ATTINY13 code from [here](https://sourceforge.net/projects/avrcandle/).
 Additionally supporting automatic turn on at night via LDR.
 
+### WS2812
+
+Minimalistic WS2812(B) lamp with just one button.
+
+
 Configuring
 -----------
 

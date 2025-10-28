@@ -73,6 +73,12 @@ if(${AVR_MCU} STREQUAL "attiny85")
         speech.c
         speech_synth.c
     )
+
+    avr_add_executable(
+        ws2812
+        light_ws2812.c
+        ws2812.c
+    )
 endif()
 
 avr_add_executable(
@@ -94,6 +100,11 @@ avr_add_executable(
 avr_add_executable(
     candle
     candle.c
+)
+
+avr_add_executable(
+    proximity
+    proximity.c
 )
 
 if(${AVR_MCU} STREQUAL "attiny85")
