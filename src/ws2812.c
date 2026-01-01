@@ -205,6 +205,9 @@ int main(void) {
   uint16_t c = 0;
   bool toggle = false;
   int32_t timer = -1;
+  float pulsing = -1.0f;
+  bool pulsing_down = true;
+  uint8_t timer_50hz = 0;
 
   DDRB |= _BV(ws2812_pin);
   DDRB &= ~_BV(BTN_PIN);
@@ -226,6 +229,10 @@ int main(void) {
       r--;
       if (r != 4) {
         timer = -1;
+      }
+      if (r != 5) {
+        pulsing = -1.0f;
+        pulsing_down = true;
       }
       if (r == 1) {
         g_hsv.V -= 0.1;
@@ -249,6 +256,15 @@ int main(void) {
           ack();
         }
       } else if (r == 5) {
+        if (pulsing < 0.0f) {
+          pulsing = 1.0f;
+          pulsing_down = true;
+        } else {
+          pulsing = -1.0f;
+          g_hsv.V = 1.0f;
+        }
+        ack();
+      } else if (r == 6) {
         eeprom_update_word(&eeprom_hue, g_hsv.H);
         ack();
       }
@@ -261,6 +277,9 @@ int main(void) {
     } else if (r == -1) {
       lp = false;
       c = 0;
+    }
+    if (++timer_50hz == 10) {
+      timer_50hz = 0;
     }
     if (lp) {
       c++;
@@ -288,6 +307,23 @@ int main(void) {
           update_leds();
         }
       }
+    }
+    if ((pulsing >= 0.0f) && (timer_50hz == 0)) {
+      if (pulsing_down) {
+        pulsing -= 0.005f;
+        if (pulsing < 0.2f) {
+          pulsing = 0.2f;
+          pulsing_down = false;
+        }
+      } else {
+        pulsing += 0.005f;
+        if (pulsing > 1.0f) {
+          pulsing = 1.0f;
+          pulsing_down = true;
+        }
+      }
+      g_hsv.V = pulsing * pulsing;
+      update_leds();
     }
     if ((r != 0) || (lp)) {
       update_leds();
