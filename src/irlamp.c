@@ -1,0 +1,391 @@
+#include <avr/eeprom.h>
+#include <avr/io.h>
+#include <avr/power.h>
+#include <avr/sleep.h>
+#include <math.h>
+#include <stdbool.h>
+#include <util/atomic.h>
+#include <util/delay.h>
+
+#include "light_ws2812.h"
+
+#define LED_PIN (PB4)
+
+#define NUM_LEDS (120)
+
+#define IR_ADDR (0xFF00)
+
+#define IR_CMD_MINUS (0xF807)
+#define IR_CMD_PLUS (0xEA15)
+#define IR_CMD_EQ (0xF609)
+#define IR_CMD_CHMINUS (0xBA45)
+#define IR_CMD_CHPLUS (0xB847)
+#define IR_CMD_LEFT (0xBB44)
+#define IR_CMD_RIGHT (0xBF40)
+
+#define IR_CMD_ONE (0xF30C)
+#define IR_CMD_TWO (0xE718)
+#define IR_CMD_THREE (0xA15E)
+#define IR_CMD_NINE (0xB54A)
+
+#define TIMEOUT ((uint32_t)(3 * 60.0f / 0.064f))  // 3 minutes
+
+typedef struct {
+  uint8_t g;
+  uint8_t r;
+  uint8_t b;
+} CRGB_t;
+
+typedef struct {
+  uint16_t H;
+  float S;
+  float V;
+} hsv_t;
+
+static CRGB_t leds[NUM_LEDS];
+
+static volatile uint32_t g_ir_data = 0;
+static volatile bool g_repeat = false;
+static volatile bool g_tick = false;
+
+static inline void ReceivedCode(bool Repeat, uint32_t data) {
+  g_ir_data = data;
+  g_repeat = Repeat;
+}
+
+ISR(WDT_vect) { g_tick = true; }
+
+ISR(INT0_vect) {
+  static uint32_t RecdData = 0;
+  static uint8_t NextBit = 32;
+
+  const uint8_t Time = TCNT0;
+  const uint8_t Overflow = TIFR & _BV(TOV0);
+  // AGC pulse and gap
+  if (NextBit == 32) {
+    if ((Time >= 194 / 2) && (Time <= 228 / 2) && (Overflow == 0)) {
+      RecdData = 0;
+      NextBit = 0;
+    } else if ((Time >= 159 / 2) && (Time <= 193 / 2) && (Overflow == 0))
+      ReceivedCode(1, RecdData);
+    // Data bit
+  } else {
+    if ((Time > 44 / 2) || (Overflow != 0))
+      NextBit = 32;  // Invalid - restart
+    else {
+      if (Time > 26 / 2) RecdData = RecdData | ((unsigned long)1 << NextBit);
+      if (NextBit == 31) ReceivedCode(0, RecdData);
+      NextBit++;
+    }
+  }
+  TCNT0 = 0;
+  TIFR = TIFR | _BV(TOV0);
+  GIFR = GIFR | _BV(INTF0);
+}
+
+static CRGB_t hsv_to_rgb(hsv_t hsv) {
+  float r = 0, g = 0, b = 0;
+
+  if (hsv.S == 0) {
+    r = hsv.V;
+    g = hsv.V;
+    b = hsv.V;
+  } else {
+    int i;
+    float f, p, q, t, H;
+
+    hsv.H %= 360;
+    if (hsv.H == 360)
+      H = 0.0;
+    else
+      H = hsv.H / 60.0;
+
+    i = (int)trunc(H);
+    f = H - i;
+
+    p = hsv.V * (1.0 - hsv.S);
+    q = hsv.V * (1.0 - (hsv.S * f));
+    t = hsv.V * (1.0 - (hsv.S * (1.0 - f)));
+
+    switch (i) {
+      case 0:
+        r = hsv.V;
+        g = t;
+        b = p;
+        break;
+
+      case 1:
+        r = q;
+        g = hsv.V;
+        b = p;
+        break;
+
+      case 2:
+        r = p;
+        g = hsv.V;
+        b = t;
+        break;
+
+      case 3:
+        r = p;
+        g = q;
+        b = hsv.V;
+        break;
+
+      case 4:
+        r = t;
+        g = p;
+        b = hsv.V;
+        break;
+
+      default:
+        r = hsv.V;
+        g = p;
+        b = q;
+        break;
+    }
+  }
+
+  return (CRGB_t){
+      .r = r * 255,
+      .g = g * 255,
+      .b = b * 255,
+  };
+}
+
+static hsv_t g_hsv = {0, 1.0, 1.0};
+
+static void update_leds(void) {
+  CRGB_t rgb = hsv_to_rgb(g_hsv);
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = rgb;
+  }
+  ws2812_sendarray((uint8_t*)leds, sizeof(leds));
+}
+
+static inline void ack(void) {
+  float v = g_hsv.V;
+  g_hsv.V = 0.0f;
+  update_leds();
+  _delay_ms(100);
+  g_hsv.V = v;
+  update_leds();
+}
+
+static inline void setup_wdt(void) {
+  MCUSR &= ~_BV(WDRF);
+  WDTCR |= (_BV(WDCE) | _BV(WDE));
+  WDTCR = _BV(WDIE) | _BV(WDP0);  // Set Timeout to 64ms
+}
+
+int main(void) {
+  int32_t timer = -1;
+  uint32_t data = 0;
+  float pulsing = -1.0f;
+  bool pulsing_down = true;
+  bool repeat = false;
+  bool power = true;
+  bool update = true;
+  bool tick = false;
+  uint8_t led_c = 0;
+
+  ADCSRA &= ~(1 << ADEN);  // ADC off
+  DDRB |= _BV(ws2812_pin) | _BV(LED_PIN);
+  PORTB &= ~_BV(LED_PIN);
+
+  // Set up Timer/Counter0 (assumes 8MHz clock)
+  TCCR0A = 0;                      // No compare matches
+  TCCR0B = _BV(CS02) | _BV(CS00);  // Prescaler /1024
+  // Set up INT0 interrupt on PB2
+  MCUCR = MCUCR | 2 << ISC00;  // Interrupt on falling edge
+  GIMSK = GIMSK | 1 << INT0;   // Enable INT0
+
+  static uint16_t eeprom_hue EEMEM = 0;
+  g_hsv.H = eeprom_read_word(&eeprom_hue);
+  if (g_hsv.H > 360) {
+    g_hsv.H = 0;
+    eeprom_update_word(&eeprom_hue, g_hsv.H);
+  }
+
+  update_leds();
+  // set_sleep_mode(SLEEP_MODE_IDLE);
+  setup_wdt();
+  sei();
+
+  for (;;) {
+    sleep_mode();
+
+    ATOMIC_BLOCK(ATOMIC_FORCEON) {
+      data = g_ir_data;
+      repeat = g_repeat;
+      tick = g_tick;
+      g_ir_data = 0;
+      g_repeat = false;
+      g_tick = false;
+    }
+
+    if (data) {
+      PORTB |= _BV(LED_PIN);
+      const uint16_t addr = data & 0xFFFF;
+      if (addr != IR_ADDR) {
+        continue;
+      }
+      const uint16_t cmd = (data >> 16) & 0xFFFF;
+      update = true;
+      switch (cmd) {
+        case IR_CMD_PLUS:
+          pulsing = -1.0f;
+          timer = -1;
+          g_hsv.V += 0.1f;
+          if (g_hsv.V > 1.0f) {
+            g_hsv.V = 1.0f;
+          }
+          break;
+
+        case IR_CMD_MINUS:
+          pulsing = -1.0f;
+          timer = -1;
+          g_hsv.V -= 0.1f;
+          if (g_hsv.V < 0.0f) {
+            g_hsv.V = 0.0f;
+          }
+          break;
+
+        case IR_CMD_RIGHT:
+          g_hsv.S += 0.01f;
+          if (g_hsv.S > 1.0f) {
+            g_hsv.S = 1.0f;
+          }
+          break;
+
+        case IR_CMD_LEFT:
+          g_hsv.S -= 0.01f;
+          if (g_hsv.S < 0.0f) {
+            g_hsv.S = 0.0f;
+          }
+          break;
+
+        case IR_CMD_EQ:
+          if (!repeat) {
+            pulsing = -1.0f;
+            timer = -1;
+            if (power) {
+              g_hsv.V = 0.0f;
+            } else {
+              g_hsv.V = 1.0f;
+            }
+            power ^= 1;
+          } else {
+            update = false;
+          }
+          break;
+
+        case IR_CMD_CHPLUS:
+          g_hsv.H += 2;
+          if (g_hsv.H >= 360) {
+            g_hsv.H = 0;
+          }
+          break;
+
+        case IR_CMD_CHMINUS:
+          g_hsv.H -= 2;
+          if (g_hsv.H >= 360) {
+            g_hsv.H = 360;
+          }
+          break;
+
+        case IR_CMD_ONE:
+          if (!repeat) {
+            if (timer > 0) {
+              timer = -1;
+              g_hsv.V = 1.0f;
+              ack();
+              _delay_ms(100);
+              ack();
+            } else {
+              timer = TIMEOUT;
+              ack();
+              update = false;
+            }
+          }
+          break;
+
+        case IR_CMD_TWO:
+          if (!repeat) {
+            if (pulsing < 0.0f) {
+              pulsing = 1.0f;
+              pulsing_down = true;
+              ack();
+            } else {
+              pulsing = -1.0f;
+              g_hsv.V = 1.0f;
+              ack();
+              _delay_ms(100);
+              ack();
+            }
+          } else {
+            update = false;
+          }
+          break;
+
+        case IR_CMD_NINE:
+          if (!repeat) {
+            eeprom_update_word(&eeprom_hue, g_hsv.H);
+            ack();
+          }
+          update = false;
+          break;
+
+        default:
+          update = false;
+          break;
+      }
+    }
+
+    if (tick) {
+      if (timer > 0) {
+        timer--;
+        if (timer == 0) {
+          timer = -1;
+          g_hsv.V = 0.0f;
+          power = false;
+          update = true;
+        } else {
+          g_hsv.V -= 1.0f / TIMEOUT;
+          if (g_hsv.V < 0.0f) {
+            g_hsv.V = 0.0f;
+          }
+          update = true;
+        }
+      }
+      if (pulsing >= 0.0f) {
+        if (pulsing_down) {
+          pulsing -= 0.005f;
+          if (pulsing < 0.2f) {
+            pulsing = 0.2f;
+            pulsing_down = false;
+          }
+        } else {
+          pulsing += 0.005f;
+          if (pulsing > 1.0f) {
+            pulsing = 1.0f;
+            pulsing_down = true;
+          }
+        }
+        g_hsv.V = pulsing * pulsing;
+        update = true;
+      }
+      led_c = (led_c + 1) % 32;
+      if (led_c > (32 - 2)) {
+        PORTB |= _BV(LED_PIN);
+      } else {
+        PORTB &= ~_BV(LED_PIN);
+      }
+    }
+
+    if (update) {
+      update_leds();
+      update = false;
+    }
+  }
+}
