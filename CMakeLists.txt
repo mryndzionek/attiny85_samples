@@ -8,7 +8,8 @@ set(VERSION_PATCH 0)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-attributes -fno-strict-aliasing -fdata-sections -ffunction-sections")
-set(CMAKE_C_FLAGS_RELEASE "-Os")
+set(CMAKE_C_FLAGS_RELEASE "-g -Os")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in"

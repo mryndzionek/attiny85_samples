@@ -6,7 +6,7 @@
 
 #include "light_ws2812.h"
 
-#define NUM_LEDS (128)
+#define NUM_LEDS (120)
 #define BTN_PIN (4)
 
 typedef struct {

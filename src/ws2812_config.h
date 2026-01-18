@@ -40,6 +40,6 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-#define ws2812_interrupt_handling 1
+#define ws2812_interrupt_handling 0
 
 #endif /* WS2812_CONFIG_H_ */
