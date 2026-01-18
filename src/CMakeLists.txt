@@ -79,6 +79,12 @@ if(${AVR_MCU} STREQUAL "attiny85")
         light_ws2812.c
         ws2812.c
     )
+
+    avr_add_executable(
+        irlamp
+        light_ws2812.c
+        irlamp.c
+    )
 endif()
 
 avr_add_executable(
@@ -105,6 +111,11 @@ avr_add_executable(
 avr_add_executable(
     proximity
     proximity.c
+)
+
+avr_add_executable(
+    ir_temp
+    ir_temp.c
 )
 
 if(${AVR_MCU} STREQUAL "attiny85")
